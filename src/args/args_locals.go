@@ -4,6 +4,7 @@ package args
 import (
 	"os"
 	"fmt"
+	"strings"
 )
 
 type arg struct {
@@ -14,7 +15,7 @@ type arg struct {
 
 func (a *Argument) parseArg(arg string) (bool, string) {
 	for key, value := range a.argsMap {
-		if arg[:len(value.separator)] == value.separator && arg[len(value.separator):] == key {
+		if strings.HasPrefix(args, value.separator) && strings.HasSuffix(arg, key) {
 			return true, key
 		}
 	}
