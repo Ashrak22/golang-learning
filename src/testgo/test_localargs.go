@@ -1,0 +1,30 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"args"
+)
+
+func version(vs ...string) {
+	fmt.Println("Version: 0.0.1-alpha9")
+	fmt.Println("Packages:")
+	fmt.Println("Args:", args.GetVersion())
+	os.Exit(0)
+}
+
+func print(vs ...string) {
+    fmt.Println(vs[0])
+	os.Exit(0)
+}
+
+func help(vs ...string) {
+	fmt.Println("Invalid argument")
+	fmt.Println("Usage:")
+	fmt.Println("testgo [argument [parameter]]")
+	fmt.Println()
+	fmt.Println("Possible arguments")
+	fmt.Println("--version 				Prints current version, and version of all non-standard packages")
+	fmt.Println("--help					This Helptext")
+	fmt.Println("--print [text w/o ws]	prints text passed as parameter")
+}
