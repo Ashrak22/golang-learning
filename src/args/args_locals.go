@@ -7,12 +7,12 @@ type arg struct {
     paramCount int
 }
 
-func stripArgs(arg string) string {
-	return arg[2:len(arg)]
+func (a *Argument) stripArgs(arg string) string {
+	return arg[len(a.separator):]
 }
 
-func isArg(arg string) bool {
-	return arg[0:2] == "--"
+func (a *Argument) isArg(arg string) bool {
+	return arg[0:len(a.separator)] == a.separator
 }
 
 func (a *Argument) countMaxArgsAndParams() int {
@@ -23,19 +23,19 @@ func (a *Argument) countMaxArgsAndParams() int {
 	return count
 }
 
-func splitArgs(args []string) map[string][]string {
+func (a *Argument) splitArgs(args []string) map[string][]string {
 	res := make(map[string][]string)
 	name := ""
 	var arr []string
 	for _, item := range args {
-		if !isArg(item) {
+		if !a.isArg(item) {
 			arr = append(arr, item)
 		} else {
 			if name != "" {
 				res[name] = arr
 				arr = make([]string, 0)
 			}
-			name = stripArgs(item)
+			name = a.stripArgs(item)
 		}
 	}
 	res[name] = arr
