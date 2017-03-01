@@ -12,7 +12,7 @@ type arg struct {
 	separator string
 }
 
-func (a *Argument) parseArg(arg string) bool string {
+func (a *Argument) parseArg(arg string) (bool, string) {
 	for key, value := range a.argsMap {
 		if arg[:len(value.separator)] == value.separator && arg[len(value.separator):] == key {
 			return true, key
@@ -26,7 +26,7 @@ func (a *Argument) splitArgs(args []string) map[string][]string {
 	name := ""
 	var arr []string
 	for _, item := range args {
-		isArg, argName := parseArg(item)
+		isArg, argName := a.parseArg(item)
 		if !isArg {
 			arr = append(arr, item)
 		} else {
