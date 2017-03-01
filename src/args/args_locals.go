@@ -1,6 +1,9 @@
 package args
 
-import "os"
+import (
+	"os"
+	"fmt"
+)
 
 type arg struct {
     function ArgFunc
@@ -43,6 +46,7 @@ func (a *Argument) splitArgs(args []string) map[string][]string {
 }
 
 func (a *Argument) raiseError() {
+	fmt.Println("Invalid arguments")
 	item, existed := a.argsMap["help"]
 	if existed {
 		item.function()

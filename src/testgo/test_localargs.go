@@ -19,7 +19,6 @@ func print(vs ...string) {
 }
 
 func help(vs ...string) {
-	fmt.Println("Invalid argument")
 	fmt.Println("Usage:")
 	fmt.Println("testgo [argument [parameter]]")
 	fmt.Println()
