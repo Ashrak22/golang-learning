@@ -29,7 +29,7 @@ func (a *Argument) RegisterArg(name string, argument ArgFunc, count int) bool {
 }
 
 func GetVersion() string{
-	return "0.2.0-beta"
+	return "1.0.0"
 }
 
 func (a *Argument) EvalArgs(arg []string) {
