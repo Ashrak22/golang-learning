@@ -29,11 +29,11 @@ func (a *Argument) RegisterArg(name string, argument ArgFunc, count int) bool {
 }
 
 func GetVersion() string{
-	return "0.1.0-beta"
+	return "0.2.0-beta"
 }
 
 func (a *Argument) EvalArgs(arg []string) {
-	args := splitArgs(arg[1:])
+	args := a.splitArgs(arg[1:])
 	for key, value := range args {
 		item, existed := a.argsMap[key]
 		if !existed || item.paramCount != len(value) {
