@@ -1,3 +1,4 @@
+//Package args provides support for arghument handling
 package args
 
 import (
@@ -8,22 +9,16 @@ import (
 type arg struct {
     function ArgFunc
     paramCount int
+	separator string
 }
 
-func (a *Argument) stripArgs(arg string) string {
-	return arg[len(a.separator):]
-}
-
-func (a *Argument) isArg(arg string) bool {
-	return arg[0:len(a.separator)] == a.separator
-}
-
-func (a *Argument) countMaxArgsAndParams() int {
-	count := 0
-	for _,item := range a.argsMap {
-		count += item.paramCount + 1
+func (a *Argument) parseArg(arg string) bool string {
+	for key, value := range a.argsMap {
+		if arg[:len(value.separator)] == value.separator && arg[len(value.separator):] == key {
+			return true, key
+		}
 	}
-	return count
+	return false, ""
 }
 
 func (a *Argument) splitArgs(args []string) map[string][]string {
@@ -31,14 +26,15 @@ func (a *Argument) splitArgs(args []string) map[string][]string {
 	name := ""
 	var arr []string
 	for _, item := range args {
-		if !a.isArg(item) {
+		isArg, argName := parseArg(item)
+		if !isArg {
 			arr = append(arr, item)
 		} else {
 			if name != "" {
 				res[name] = arr
 				arr = make([]string, 0)
 			}
-			name = a.stripArgs(item)
+			name = argName
 		}
 	}
 	res[name] = arr

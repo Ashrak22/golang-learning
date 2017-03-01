@@ -23,7 +23,7 @@ func help(vs ...string) {
 	fmt.Println("testgo [argument [parameter]]")
 	fmt.Println()
 	fmt.Println("Possible arguments")
-	fmt.Println("--version 				Prints current version, and version of all non-standard packages")
-	fmt.Println("--help					This Helptext")
-	fmt.Println("--print [text w/o ws]	prints text passed as parameter")
+	fmt.Println("-version 				Prints current version, and version of all non-standard packages")
+	fmt.Println("-help					This Helptext")
+	fmt.Println("-print [text w/o ws]	prints text passed as parameter")
 }
