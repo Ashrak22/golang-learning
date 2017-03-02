@@ -2,11 +2,12 @@
 package args
 
 import "errors"
+
 /*
  *	TODO:
  *	2) Add support for Flag like args as with ls (ls -l -a / ls -la)
  */
- 
+
  //ArgFunc is type for callbacks on recognized params
 type ArgFunc func(...string)
 
@@ -36,19 +37,22 @@ func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separat
 
 //GetVersion returns the version string of this package
 func GetVersion() string{
-	return "1.0.2"
+	return "1.0.3"
 }
 
 //EvalArgs evaluates passed cmd arguments and calls provided callbacks
 func (a *Argument) EvalArgs(arg []string) error {
+	if len(arg) == 1 {
+		return nil
+	}
+
 	args := a.splitArgs(arg[1:])
+
 	for key, value := range args {
 		item, existed := a.argsMap[key]
 		if !existed {
-			a.raiseError()
 			return errors.New("Not existing arguments received")
 		} else if item.paramCount != len(value) {
-			a.raiseError()
 			return errors.New("Too many params received")
 		}
 		item.function(value...)

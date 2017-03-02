@@ -2,7 +2,6 @@
 package args
 
 import (
-	"fmt"
 	"bytes"
 )
 
@@ -42,12 +41,4 @@ func (a *Argument) splitArgs(args []string) map[string][]string {
 	}
 	res[name] = arr
 	return res
-}
-
-func (a *Argument) raiseError() {
-	fmt.Println("Invalid arguments")
-	item, existed := a.argsMap["help"]
-	if existed {
-		item.function()
-	}
 }
