@@ -44,9 +44,12 @@ func (a *Argument) EvalArgs(arg []string) error {
 	args := a.splitArgs(arg[1:])
 	for key, value := range args {
 		item, existed := a.argsMap[key]
-		if !existed || item.paramCount != len(value) {
+		if !existed {
 			a.raiseError()
-			return errors.New("Wrong arguments sent")
+			return errors.New("Not existing arguments received")
+		} else if item.paramCount != len(value) {
+			a.raiseError()
+			return errors.New("Too many params received")
 		}
 		item.function(value...)
 	}
