@@ -4,7 +4,7 @@ package args
 import (
 	"os"
 	"fmt"
-	"strings"
+	"bytes"
 )
 
 type arg struct {
@@ -15,7 +15,10 @@ type arg struct {
 
 func (a *Argument) parseArg(arg string) (bool, string) {
 	for key, value := range a.argsMap {
-		if strings.HasPrefix(arg, value.separator) && strings.HasSuffix(arg, key) {
+		var buff bytes.Buffer
+		buff.WriteString(value.separator)
+		buff.WriteString(key)
+		if arg == buff.String() {
 			return true, key
 		}
 	}

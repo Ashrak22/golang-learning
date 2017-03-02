@@ -2,7 +2,6 @@
 package args
 /*
  *	TODO:
- *	1) Add multiple possible separators
  *	2) Add support for Flag like args as with ls (ls -l -a / ls -la)
  */
  
@@ -35,7 +34,7 @@ func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separat
 
 //GetVersion returns the version string of this package
 func GetVersion() string{
-	return "1.0.0"
+	return "1.0.2"
 }
 
 //EvalArgs evaluates passed cmd arguments and calls provided callbacks
