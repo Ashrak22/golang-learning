@@ -1,5 +1,7 @@
 //Package args provides support for arghument handling
 package args
+
+import "errors"
 /*
  *	TODO:
  *	2) Add support for Flag like args as with ls (ls -l -a / ls -la)
@@ -38,13 +40,15 @@ func GetVersion() string{
 }
 
 //EvalArgs evaluates passed cmd arguments and calls provided callbacks
-func (a *Argument) EvalArgs(arg []string) {
+func (a *Argument) EvalArgs(arg []string) error {
 	args := a.splitArgs(arg[1:])
 	for key, value := range args {
 		item, existed := a.argsMap[key]
 		if !existed || item.paramCount != len(value) {
 			a.raiseError()
+			return errors.New("Wrong arguments sent")
 		}
 		item.function(value...)
 	}
+	return nil
 }

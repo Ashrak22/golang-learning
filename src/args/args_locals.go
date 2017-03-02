@@ -2,7 +2,6 @@
 package args
 
 import (
-	"os"
 	"fmt"
 	"bytes"
 )
@@ -51,5 +50,4 @@ func (a *Argument) raiseError() {
 	if existed {
 		item.function()
 	}
-	os.Exit(1)
 }
