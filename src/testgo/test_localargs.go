@@ -7,7 +7,7 @@ import (
 )
 
 func version(vs ...string) {
-	fmt.Println("Version: 0.0.1-alpha9")
+	fmt.Println("Version: 0.0.2-alpha1")
 	fmt.Println("Packages:")
 	fmt.Println("Args:", args.GetVersion())
 	os.Exit(0)
