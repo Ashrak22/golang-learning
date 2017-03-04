@@ -1,7 +1,7 @@
 package args
 
 type ArgError struct {
-	msg string,
+	msg string
 	code int
 }
 
