@@ -1,8 +1,6 @@
 //Package args provides support for arghument handling
 package args
 
-import "errors"
-
 /*
  *	TODO:
  *	2) Add support for Flag like args as with ls (ls -l -a / ls -la)

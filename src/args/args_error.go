@@ -5,12 +5,12 @@ type ArgError struct {
 	code int
 }
 
-func NewArgError(code int, msg string) ArgError {
-	var err ArgError
+func NewArgError(code int, msg string) *ArgError {
+	var err *ArgError
 	err = new(ArgError)
 	err.msg = msg
 	err.code = code 
-	return &ArgError
+	return err
 }
 
 func (e *ArgError) Error() string {
