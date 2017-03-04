@@ -29,7 +29,7 @@ func NewArg() *Argument {
 func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separator string) error {
 	_,existed := a.argsMap[name]
 	if existed {
-		return errors.New("Arg already exists")
+		return NewArgError(1, "Arg already exists")
 	}
 	a.argsMap[name] = arg{argument, count, separator}
 	return nil
@@ -51,9 +51,9 @@ func (a *Argument) EvalArgs(arg []string) error {
 	for key, value := range args {
 		item, existed := a.argsMap[key]
 		if !existed {
-			return errors.New("Not existing arguments received")
+			return NewArgError(2, "Not existing arguments received")
 		} else if item.paramCount != len(value) {
-			return errors.New("Too many params received")
+			return NewArgError(3, "Too many params received")
 		}
 		item.function(value...)
 	}
