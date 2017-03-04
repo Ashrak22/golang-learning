@@ -26,13 +26,13 @@ func NewArg() *Argument {
 
 
 //RegisterArgs registers callback for recognized argument and number of params it can take
-func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separator string) bool {
+func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separator string) error {
 	_,existed := a.argsMap[name]
-	if !existed {
-		a.argsMap[name] = arg{argument, count, separator}
-		return true
+	if existed {
+		return errors.New("Arg already exists")
 	}
-	return false
+	a.argsMap[name] = arg{argument, count, separator}
+	return nil
 }
 
 //GetVersion returns the version string of this package
