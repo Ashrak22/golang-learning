@@ -6,9 +6,9 @@ import (
 )
 
 type arg struct {
-    function ArgFunc
-    paramCount int
-	separator string
+	function   ArgFunc
+	paramCount int
+	separator  string
 }
 
 func (a *Argument) parseArg(arg string) (bool, string) {
