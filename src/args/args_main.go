@@ -1,12 +1,16 @@
 //Package args provides support for arghument handling
 package args
 
+import (
+	BetterError "bettererror"
+)
+
 /*
  *	TODO:
  *	2) Add support for Flag like args as with ls (ls -l -a / ls -la)
  */
 
- //ArgFunc is type for callbacks on recognized params
+//ArgFunc is type for callbacks on recognized params
 type ArgFunc func(...string)
 
 //Argument class that holds all arguments and needed info
@@ -22,19 +26,18 @@ func NewArg() *Argument {
 	return argg
 }
 
-
-//RegisterArgs registers callback for recognized argument and number of params it can take
+//RegisterArg registers callback for recognized argument and number of params it can take
 func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separator string) error {
-	_,existed := a.argsMap[name]
+	_, existed := a.argsMap[name]
 	if existed {
-		return NewArgError(1, "Arg already exists")
+		return BetterError.NewBetterError(1, "Arg already exists")
 	}
 	a.argsMap[name] = arg{argument, count, separator}
 	return nil
 }
 
 //GetVersion returns the version string of this package
-func GetVersion() string{
+func GetVersion() string {
 	return "1.0.3"
 }
 
@@ -49,9 +52,9 @@ func (a *Argument) EvalArgs(arg []string) error {
 	for key, value := range args {
 		item, existed := a.argsMap[key]
 		if !existed {
-			return NewArgError(2, "Not existing arguments received")
+			return BetterError.NewBetterError(2, "Not existing arguments received")
 		} else if item.paramCount != len(value) {
-			return NewArgError(3, "Too many params received")
+			return BetterError.NewBetterError(3, "Too many params received")
 		}
 		item.function(value...)
 	}
