@@ -31,12 +31,13 @@ func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separat
 		return BetterError.NewBetterError(myFacility, 0x0001, "Arg already exists")
 	}
 	a.argsMap[name] = arg{argument, count, separator}
+	separators = append(separators, separator)
 	return nil
 }
 
 //GetVersion returns the version string of this package
 func GetVersion() string {
-	return "1.0.3"
+	return "1.0.5"
 }
 
 //EvalArgs evaluates passed cmd arguments and calls provided callbacks
@@ -45,14 +46,15 @@ func (a *Argument) EvalArgs(arg []string) error {
 		return nil
 	}
 
-	args := a.splitArgs(arg[1:])
+	args, err := a.splitArgs(arg[1:])
+	if err != nil {
+		return err
+	}
 
 	for key, value := range args {
-		item, existed := a.argsMap[key]
-		if !existed {
-			return BetterError.NewBetterError(myFacility, 0x0002, "Not existing arguments received")
-		} else if item.paramCount != len(value) {
-			return BetterError.NewBetterError(myFacility, 0x0003, "Too many params received")
+		item := a.argsMap[key]
+		if item.paramCount != len(value) {
+			return BetterError.NewBetterError(myFacility, 0x0003, "Too many or too few params received")
 		}
 		item.function(value...)
 	}

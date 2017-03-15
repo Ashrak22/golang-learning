@@ -1,6 +1,10 @@
 //Package bettererror handlers errors better by adding an error code
 package bettererror
 
+import (
+	"fmt"
+)
+
 //BetterError is the struct that gets returned
 type BetterError struct {
 	msg      string
@@ -15,7 +19,7 @@ func NewBetterError(facility uint16, code uint16, msg string) *BetterError {
 
 //Error returns error Message.
 func (e *BetterError) Error() string {
-	return e.msg
+	return fmt.Sprintf("Package: %s \r\nErrorcode: 0x%08x\r\nMessage: %s\r\n", facilities[e.facility], e.Code(), e.msg)
 }
 
 //Code returns error code bundled together with facility.

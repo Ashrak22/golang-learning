@@ -3,6 +3,7 @@ package main
 import (
 	"args"
 	"bettererror"
+	"fmt"
 	"os"
 )
 
@@ -22,7 +23,8 @@ func main() {
 	a.RegisterArg("help", help, 0, "-")
 	err := a.EvalArgs(os.Args)
 	if err != nil {
-		bettererror.CheckError(err.(*bettererror.BetterError))
+		fmt.Println(err.Error())
 	}
-	bettererror.CheckError(bettererror.NewBetterError(myFacility, 0x0001, "TestError"))
+
+	fmt.Println(bettererror.NewBetterError(myFacility, 0x0001, "TestError").Error())
 }
