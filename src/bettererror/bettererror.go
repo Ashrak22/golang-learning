@@ -3,23 +3,22 @@ package bettererror
 
 //BetterError is the struct that gets returned
 type BetterError struct {
-	msg  string
-	code int
+	msg      string
+	code     uint16
+	facility uint16
 }
 
 //NewBetterError is factory to create new instance of the Better Error struct
-func NewBetterError(code int, msg string) *BetterError {
-	var err *BetterError
-	err = new(BetterError)
-	err.msg = msg
-	err.code = code
-	return err
+func NewBetterError(facility uint16, code uint16, msg string) *BetterError {
+	return &BetterError{msg, code, facility}
 }
 
+//Error returns error Message.
 func (e *BetterError) Error() string {
 	return e.msg
 }
 
-func (e *BetterError) Code() int {
-	return e.code
+//Code returns error code bundled together with facility.
+func (e *BetterError) Code() uint32 {
+	return ((uint32(e.facility))<<16)&0xFFFF0000 | (uint32(e.code))&0x0000FFFF
 }

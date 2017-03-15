@@ -2,13 +2,20 @@
 package args
 
 import (
+	"bettererror"
 	"bytes"
 )
+
+var myFacility uint16 = 0x0001
 
 type arg struct {
 	function   ArgFunc
 	paramCount int
 	separator  string
+}
+
+func init() {
+	bettererror.RegisterFacility(myFacility, "args")
 }
 
 func (a *Argument) parseArg(arg string) (bool, string) {

@@ -18,7 +18,7 @@ func TestEvalArgsTooManyParams(t *testing.T) {
 	var args []string
 	args = append(args, "args", "--help", "abc")
 	err := a.EvalArgs(args).(*bettererror.BetterError)
-	if err.Code() != 3 {
+	if err.Code() != 0x00010003 {
 		t.Fatalf("Expected error: Too Many params, received: %s", err.Error())
 	}
 }
@@ -30,7 +30,7 @@ func TestEvalArgsWrongArg(t *testing.T) {
 	var args []string
 	args = append(args, "args", "--hepp")
 	err := a.EvalArgs(args).(*bettererror.BetterError)
-	if err.Code() != 2 {
+	if err.Code() != 0x00010002 {
 		t.Fatalf("Expected error: Wrong arg, received: %s", err.Error())
 	}
 }

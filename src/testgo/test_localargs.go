@@ -1,20 +1,22 @@
 package main
 
 import (
+	"args"
+	"bettererror"
 	"fmt"
 	"os"
-	"args"
 )
 
 func version(vs ...string) {
 	fmt.Println("Version: 0.0.2-alpha1")
 	fmt.Println("Packages:")
 	fmt.Println("Args:", args.GetVersion())
-	os.Exit(0)
+	fmt.Println("BetterError:", bettererror.GetVersion())
+	//os.Exit(0)
 }
 
 func print(vs ...string) {
-    fmt.Println(vs[0])
+	fmt.Println(vs[0])
 	os.Exit(0)
 }
 

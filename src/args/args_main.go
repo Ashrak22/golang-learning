@@ -21,16 +21,14 @@ type Argument struct {
 //NewArg is the factory function for creation of basic empty Argument class
 //At least one separator has to be added with add Separator
 func NewArg() *Argument {
-	argg := new(Argument)
-	argg.argsMap = make(map[string]arg)
-	return argg
+	return &Argument{make(map[string]arg)}
 }
 
 //RegisterArg registers callback for recognized argument and number of params it can take
 func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separator string) error {
 	_, existed := a.argsMap[name]
 	if existed {
-		return BetterError.NewBetterError(1, "Arg already exists")
+		return BetterError.NewBetterError(myFacility, 0x0001, "Arg already exists")
 	}
 	a.argsMap[name] = arg{argument, count, separator}
 	return nil
@@ -52,9 +50,9 @@ func (a *Argument) EvalArgs(arg []string) error {
 	for key, value := range args {
 		item, existed := a.argsMap[key]
 		if !existed {
-			return BetterError.NewBetterError(2, "Not existing arguments received")
+			return BetterError.NewBetterError(myFacility, 0x0002, "Not existing arguments received")
 		} else if item.paramCount != len(value) {
-			return BetterError.NewBetterError(3, "Too many params received")
+			return BetterError.NewBetterError(myFacility, 0x0003, "Too many params received")
 		}
 		item.function(value...)
 	}
