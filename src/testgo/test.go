@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var myFacility uint16 = 0x1000
+const myFacility uint16 = 0x1000
 
 func init() {
 	bettererror.RegisterFacility(myFacility, "testgoApp")
@@ -25,6 +25,4 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-
-	fmt.Println(bettererror.NewBetterError(myFacility, 0x0001, "TestError").Error())
 }

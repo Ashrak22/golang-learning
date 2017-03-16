@@ -7,8 +7,7 @@ import (
 	"strings"
 )
 
-var myFacility uint16 = 0x0001
-var separators []string
+const myFacility uint16 = 0x0001
 
 type arg struct {
 	function   ArgFunc
@@ -18,26 +17,28 @@ type arg struct {
 
 func init() {
 	bettererror.RegisterFacility(myFacility, "args")
-	separators = make([]string, 0)
 }
 
 func (a *Argument) parseArg(arg string) (bool, string, error) {
-	for key, value := range a.argsMap {
-		var buff bytes.Buffer
-		buff.WriteString(value.separator)
-		buff.WriteString(key)
-		if arg == buff.String() {
-			return true, key, nil
-		} else if strings.HasSuffix(arg, key) {
-			return false, "", bettererror.NewBetterError(myFacility, 0x0005, "Wrong separator used")
-		}
+	trimmed := strings.TrimLeft(arg, string(a.sepString))
+	if arg == trimmed {
+		return false, "", nil
 	}
-	for _, sep := range separators {
-		if strings.HasPrefix(arg, sep) {
-			return false, "", bettererror.NewBetterError(myFacility, 0x0004, "Found possible not registered argument")
-		}
+
+	value, existed := a.argsMap[trimmed]
+	if !existed {
+		return false, "", bettererror.NewBetterError(myFacility, 0x0004, "Found possible not registered argument")
 	}
-	return false, "", nil
+
+	var buff bytes.Buffer
+    buff.WriteString(value.separator)
+    buff.WriteString(trimmed)
+
+	if arg == buff.String() {
+		return true, trimmed, nil
+	} else {
+		return false, "", bettererror.NewBetterError(myFacility, 0x0005, "Wrong separator used")
+	}
 }
 
 func (a *Argument) splitArgs(args []string) (map[string][]string, error) {
