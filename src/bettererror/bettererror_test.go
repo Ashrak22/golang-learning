@@ -7,6 +7,10 @@ func TestRegisterFacility(t *testing.T) {
 	if facilities[0x0001] != "args" {
 		t.Errorf("Wrong facility returned")
 	}
+	err := RegisterFacility(0x0001, "args")
+	if err == nil || err.(*BetterError).Code() != 0x00000001 {
+		t.Errorf("Expected Facility exist.")
+	}
 }
 
 func TestCreateErrorUnknownFacility(t *testing.T) {
