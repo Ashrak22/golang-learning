@@ -15,7 +15,7 @@ type ArgFunc func(...string)
 
 //Argument class that holds all arguments and needed info
 type Argument struct {
-	argsMap map[string]arg
+	argsMap   map[string]arg
 	sepString []byte
 }
 
@@ -38,7 +38,7 @@ func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separat
 
 //GetVersion returns the version string of this package
 func GetVersion() string {
-	return "1.0.6"
+	return "1.0.7"
 }
 
 //EvalArgs evaluates passed cmd arguments and calls provided callbacks

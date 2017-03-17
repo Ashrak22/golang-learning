@@ -14,6 +14,10 @@ type BetterError struct {
 
 //NewBetterError is factory to create new instance of the Better Error struct
 func NewBetterError(facility uint16, code uint16, msg string) *BetterError {
+	_, existed := facilities[facility]
+	if !existed {
+		return &BetterError{"Unregistered facility", 0x0002, myFacility}
+	}
 	return &BetterError{msg, code, facility}
 }
 
