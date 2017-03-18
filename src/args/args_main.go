@@ -11,7 +11,7 @@ import (
  */
 
 //ArgFunc is type for callbacks on recognized params
-type ArgFunc func(...string)
+type ArgFunc func(...string) error
 
 //Argument class that holds all arguments and needed info
 type Argument struct {
@@ -57,7 +57,10 @@ func (a *Argument) EvalArgs(arg []string) error {
 		if item.paramCount != len(value) {
 			return BetterError.NewBetterError(myFacility, 0x0003, "Too many or too few params received")
 		}
-		item.function(value...)
+		err := item.function(value...)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
