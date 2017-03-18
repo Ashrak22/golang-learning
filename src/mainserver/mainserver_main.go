@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
+	"time"
 )
 
 /*Error handling variables and consts*/
@@ -85,12 +86,12 @@ func pullUpCli() (*exec.Cmd, error) {
 
 	if runtime.GOOS != "windows" {
 		ret = exec.Command("screen", "-dmS", "cli", "bash")
-		ret.Wait()
+		time.Sleep(1 * time.Second)
 		_, err = ret.Output()
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
 		}
-		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "cli --version")
+		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "$'cli --version'")
 		_, err = ret.Output()
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
