@@ -16,8 +16,9 @@ const myFacility uint16 = 0x1001
 var myErrors = map[uint16]string{
 	0x0001: "Port argument is not a valid number",
 	0x0002: "Cannot use a Reserved Portnumber",
-	0x0003: "Cli couldn't be found",
-	0x0004: "Listening Port can't be 0",
+	0x0003: "Cannot execute screen",
+	0x0004: "Cannot execute cli command",
+	0x0005: "Listening Port can't be 0",
 }
 
 var port uint16
@@ -62,7 +63,7 @@ func main() {
 		os.Exit(1)
 	}
 	if port == 0 {
-		err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
+		err = bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005])
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
@@ -85,13 +86,13 @@ func pullUpCli() (*exec.Cmd, error) {
 	if runtime.GOOS != "windows" {
 		ret = exec.Command("screen", "-dmS", "cli", "bash")
 		_, err = ret.Output()
-		if err.Error() == "exit status 1" {
+		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
 		}
 		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "$'cli --version'")
 		_, err = ret.Output()
-		if err.Error() == "exit status 1" {
-			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
+		if err != nil {
+			err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
 		}
 		fmt.Println("CLI succesfully pulled up, you can acces it by executing 'screen -r cli'")
 	} else {
