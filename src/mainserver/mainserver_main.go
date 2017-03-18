@@ -61,7 +61,11 @@ func main() {
 		os.Exit(1)
 	}
 	if cli {
-		pullUpCli()
+		_, err := pullUpCli()
+		if err != nil {
+			fmt.Print(err.Error())
+			os.Exit(1)
+		}
 	}
 
 }
