@@ -17,6 +17,7 @@ var myErrors = map[uint16]string{
 	0x0001: "Port argument is not a valid number",
 	0x0002: "Cannot use a Reserved Portnumber",
 	0x0003: "Cli couldn't be found",
+	0x0004: "Listening Port can't be 0",
 }
 
 var port uint16
@@ -60,6 +61,11 @@ func main() {
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
+	if port == 0 {
+		err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
 	if cli {
 		_, err := pullUpCli()
 		if err != nil {
@@ -75,7 +81,6 @@ func pullUpCli() (*exec.Cmd, error) {
 
 	var err error
 	var ret *exec.Cmd
-	//var out []byte
 
 	if runtime.GOOS != "windows" {
 		ret = exec.Command("screen", "cli", "/port", strconv.Itoa(int(port)))
@@ -84,7 +89,8 @@ func pullUpCli() (*exec.Cmd, error) {
 			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
 		}
 	} else {
-		fmt.Println("Sorry, i can't pull the CLI up automatically")
+		fmt.Println("Sorry, i can't pull the CLI up automatically on windows")
 	}
+
 	return ret, err
 }

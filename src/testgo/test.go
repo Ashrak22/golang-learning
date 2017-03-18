@@ -14,9 +14,6 @@ func init() {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		os.Exit(1)
-	}
 	a := args.NewArg()
 	a.RegisterArg("version", version, 0, "--")
 	a.RegisterArg("print", print, 1, "/")
@@ -24,5 +21,7 @@ func main() {
 	err := a.EvalArgs(os.Args)
 	if err != nil {
 		fmt.Println(err.Error())
+	}
+	for true {
 	}
 }
