@@ -83,11 +83,17 @@ func pullUpCli() (*exec.Cmd, error) {
 	var ret *exec.Cmd
 
 	if runtime.GOOS != "windows" {
-		ret = exec.Command("screen", "cli", "/port", strconv.Itoa(int(port)))
+		ret = exec.Command("screen", "-dmS", "cli", "bash")
 		_, err = ret.Output()
 		if err.Error() == "exit status 1" {
 			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
 		}
+		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "$'cli --version'")
+		_, err = ret.Output()
+		if err.Error() == "exit status 1" {
+			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
+		}
+		fmt.Println("CLI succesfully pulled up, you can acces it by executing 'screen -r cli'")
 	} else {
 		fmt.Println("Sorry, i can't pull the CLI up automatically on windows")
 	}
