@@ -83,15 +83,16 @@ func pullUpCli() (*exec.Cmd, error) {
 
 	var err error
 	var ret *exec.Cmd
-
 	if runtime.GOOS != "windows" {
 		ret = exec.Command("screen", "-dmS", "cli", "bash")
-		time.Sleep(1 * time.Second)
+		ret.Start()
+		ret.Wait()
+		time.Sleep(2 * time.Second)
 		_, err = ret.Output()
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
 		}
-		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "$'cli --version'")
+		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "cli --version \n")
 		_, err = ret.Output()
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
