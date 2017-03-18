@@ -4,10 +4,12 @@ import (
 	"args"
 	"bettererror"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,6 +22,9 @@ var myErrors = map[uint16]string{
 	0x0003: "Cannot execute screen",
 	0x0004: "Cannot execute cli command",
 	0x0005: "Listening Port can't be 0",
+	0x0006: "Couldn't start listening on Port. ",
+	0x0007: "Error when acceptin connection ",
+	0x0008: "Error when waiting for data: ",
 }
 
 var port uint16
@@ -41,9 +46,30 @@ func setPort(vs ...string) error {
 	return nil
 }
 
-func setCli(vs ...string) error {
-	cli = true
-	return nil
+func pullUpCli(vs ...string) error {
+	fmt.Println("Pulling up CLI interface")
+
+	var err error
+	var ret *exec.Cmd
+	if runtime.GOOS != "windows" {
+		ret = exec.Command("screen", "-dmS", "cli", "bash")
+		ret.Start()
+		time.Sleep(2 * time.Second)
+		_, err = ret.Output()
+		if err != nil {
+			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
+		}
+		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "cli /port "+strconv.Itoa(int(port))+" \n")
+		_, err = ret.Output()
+		if err != nil {
+			err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
+		}
+		fmt.Println("CLI succesfully pulled up, you can acces it by executing 'screen -r cli'")
+	} else {
+		fmt.Println("Sorry, i can't pull the CLI up automatically on windows")
+	}
+
+	return err
 }
 
 func main() {
@@ -53,7 +79,7 @@ func main() {
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-	err = a.RegisterArg("cli", args.ArgFunc(setCli), 0, "/")
+	err = a.RegisterArg("cli", args.ArgFunc(pullUpCli), 0, "/")
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
@@ -68,39 +94,60 @@ func main() {
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-	if cli {
-		_, err := pullUpCli()
-		if err != nil {
-			fmt.Print(err.Error())
-			os.Exit(1)
-		}
+	err = runLoop()
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
 	}
-
 }
 
-func pullUpCli() (*exec.Cmd, error) {
-	fmt.Println("Pulling up CLI interface")
-
-	var err error
-	var ret *exec.Cmd
-	if runtime.GOOS != "windows" {
-		ret = exec.Command("screen", "-dmS", "cli", "bash")
-		ret.Start()
-		ret.Wait()
-		time.Sleep(2 * time.Second)
-		_, err = ret.Output()
-		if err != nil {
-			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
-		}
-		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "cli --version \n")
-		_, err = ret.Output()
-		if err != nil {
-			err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
-		}
-		fmt.Println("CLI succesfully pulled up, you can acces it by executing 'screen -r cli'")
-	} else {
-		fmt.Println("Sorry, i can't pull the CLI up automatically on windows")
+func runLoop() error {
+	fmt.Println("Starting networking subsystem")
+	listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.IPv4(0, 0, 0, 0), Port: int(port)})
+	if err != nil {
+		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006]+err.Error())
 	}
+	defer listener.Close()
+	for true {
+		fmt.Println("Waiting for connection")
+		conn, err := listener.AcceptTCP()
+		if err != nil {
+			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
+		}
+		go runConnection(conn)
+	}
+	return nil
+}
+func memsetRepeat(a []byte, v byte) {
+	if len(a) == 0 {
+		return
+	}
+	a[0] = v
+	for bp := 1; bp < len(a); bp *= 2 {
+		copy(a[bp:], a[:bp])
+	}
+}
 
-	return ret, err
+func runConnection(conn *net.TCPConn) {
+	var buffer [5 * 1024]byte
+	defer conn.Close()
+	for true {
+		memsetRepeat(buffer[0:], 0)
+		data, err := conn.Read(buffer[0:])
+		if err != nil {
+			if strings.Contains(err.Error(), "EOF") {
+				return
+			}
+			err = bettererror.NewBetterError(myFacility, 0x0008, myErrors[0x0008]+err.Error())
+			fmt.Println(err.Error())
+			return
+		}
+		if data == 0 {
+			break
+		}
+		fmt.Printf("Msg: %s", string(buffer[:]))
+		if strings.Contains(string(buffer[:]), "exit") {
+			return
+		}
+	}
 }

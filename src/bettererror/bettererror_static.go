@@ -19,6 +19,7 @@ func RegisterFacility(facility uint16, name string) error {
 	return nil
 }
 
+//GetVersion returns the version string
 func GetVersion() string {
-	return "1.0.0"
+	return "1.0.1"
 }

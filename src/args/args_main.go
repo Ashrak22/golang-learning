@@ -38,7 +38,7 @@ func (a *Argument) RegisterArg(name string, argument ArgFunc, count int, separat
 
 //GetVersion returns the version string of this package
 func GetVersion() string {
-	return "1.0.7"
+	return "1.1.0"
 }
 
 //EvalArgs evaluates passed cmd arguments and calls provided callbacks
