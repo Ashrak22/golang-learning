@@ -75,12 +75,12 @@ func pullUpCli() (*exec.Cmd, error) {
 
 	var err error
 	var ret *exec.Cmd
-	var out []byte
+	//var out []byte
 
 	if runtime.GOOS != "windows" {
 		ret = exec.Command("screen", "cli", "/port", strconv.Itoa(int(port)))
-		out, err = ret.Output()
-		if string(out) == "[screen is terminating]" {
+		_, err = ret.Output()
+		if err.Error() == "exit status 1" {
 			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
 		}
 	} else {
