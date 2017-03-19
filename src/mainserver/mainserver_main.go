@@ -29,6 +29,7 @@ var myErrors = map[uint16]string{
 	0x0007: "Error when acceptin connection ",
 	0x0008: "Error when waiting for data: ",
 	0x0009: "Wrong Magic Number received",
+	0x0010: "Error when writing data: ",
 }
 
 var port uint16
@@ -157,18 +158,22 @@ func runConnection(conn *net.TCPConn) {
 	}
 	if initmsg.App == "cli" {
 		fmt.Println("App cli has connected from ", conn.RemoteAddr().String())
-		handleCli(conn, buffer)
+		handleCli(conn)
 	}
 }
 
-func handleCli(conn *net.TCPConn, buffer [8 * 1024]byte) {
+func handleCli(conn *net.TCPConn) {
+	var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
+	buffer, _ := proto.Marshal(initResponse)
+	_, err := conn.Write(buffer)
+	if err != nil {
+		err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
+		fmt.Println(err.Error())
+		return
+	}
+	memsetRepeat(buffer, 0)
 	for true {
-		memsetRepeat(buffer[0:], 0)
-		var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
-		buffer, err := proto.Marshal(initResponse)
-		_, err = conn.Write(buffer)
-		memsetRepeat(buffer[0:], 0)
-		data, err := conn.Read(buffer[0:])
+		data, err := conn.Read(buffer)
 		if err != nil {
 			if strings.Contains(err.Error(), "EOF") {
 				return
@@ -179,6 +184,24 @@ func handleCli(conn *net.TCPConn, buffer [8 * 1024]byte) {
 		}
 		if data == 0 {
 			break
+		}
+		var comm = new(messages.Command)
+		proto.Unmarshal(buffer, comm)
+		var resp *messages.CommandResult
+		if comm.Magic != 0xABCD {
+			err = bettererror.NewBetterError(myFacility, 0x0009, myErrors[0x0009])
+			resp = &messages.CommandResult{Magic: 0x0000, CommandResult: int32(err.(*bettererror.BetterError).Code()), DisplayText: err.Error()}
+		} else {
+			fmt.Printf("Received command %d with args '%s'\r\n", comm.Command, comm.Argstring)
+			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
+		}
+		memsetRepeat(buffer, 0)
+		buffer, _ = proto.Marshal(resp)
+		_, err = conn.Write(buffer)
+		if err != nil {
+			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
+			fmt.Println(err.Error())
+			return
 		}
 	}
 }

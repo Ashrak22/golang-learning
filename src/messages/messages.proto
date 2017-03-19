@@ -20,8 +20,13 @@ message Ping {
 }
 
 message Command {
-    int32 version = 1;
-    int32 magic = 2;
-    int32 command = 3;
-    string argstring = 4; 
+    int32 magic = 1;
+    int32 command = 2;
+    string argstring = 3; 
+}
+
+message CommandResult {
+    int32 magic = 1;
+    int32 commandResult = 2;
+    string displayText = 3;
 }

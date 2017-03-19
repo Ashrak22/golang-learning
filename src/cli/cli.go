@@ -7,48 +7,13 @@ import (
 	"messages"
 	"net"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 )
 
-const myFacility uint16 = 0x1003
-
-var ipaddr []net.IP
-var port uint16
-var myErrors = map[uint16]string{
-	0x0001: "Couldn't parse/lookup IP: ",
-	0x0002: "Port argument is not a valid number",
-	0x0003: "Cannot use a Reserved Portnumber",
-	0x0004: "Couldn't reach server: ",
-	0x0005: "Write failed: ",
-	0x0006: "Connection not allowed.",
-	0x0007: "Read failed: ",
-}
-
 func init() {
 	bettererror.RegisterFacility(myFacility, "cliapp")
-}
-
-func getHost(vs ...string) error {
-	var err error
-	ipaddr, err = net.LookupIP(vs[0])
-	if err != nil {
-		return bettererror.NewBetterError(myFacility, 0x0001, myErrors[0x0001]+err.Error())
-	}
-	return nil
-}
-
-func setPort(vs ...string) error {
-	i, err := strconv.Atoi(vs[0])
-	if err != nil {
-		return bettererror.NewBetterError(myFacility, 0x0002, myErrors[0x0002])
-	}
-	if i < 1024 {
-		return bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
-	}
-	port = uint16(i)
-	return nil
 }
 
 func main() {
@@ -76,7 +41,7 @@ func main() {
 	}
 }
 
-func memsetRepeat(a []byte, v byte) {
+func memset(a []byte, v byte) {
 	if len(a) == 0 {
 		return
 	}
@@ -98,7 +63,7 @@ func runLoop() error {
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
 	}
-	memsetRepeat(data, 0)
+	memset(data, 0)
 	_, err = conn.Read(data)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
@@ -108,10 +73,42 @@ func runLoop() error {
 	if !initResponse.Allowed {
 		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 	}
-	var b = make([]byte, 1)
+	var b = make([]byte, 1024)
 	for true {
+		fmt.Print("> ")
 		os.Stdin.Read(b)
-		fmt.Print(string(b))
+		var command = string(b)
+		command = strings.TrimRight(command, "\r\n")
+		if command == "exit" {
+			break
+		}
+		var comm = &messages.Command{Magic: 0xABCD}
+		for key, value := range messages.Commands {
+			if strings.HasPrefix(command, key) {
+				comm.Command = value
+				comm.Argstring = command[len(key)+1:]
+			}
+		}
+		if comm.Command == 0 {
+			fmt.Println(bettererror.NewBetterError(myFacility, 0x0008, myErrors[0x0008]).Error())
+			continue
+		}
+		memset(data, 0)
+		data, err = proto.Marshal(comm)
+		_, err = conn.Write(data)
+		if err != nil {
+			return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
+		}
+		memset(data, 0)
+		_, err = conn.Read(data)
+		if err != nil {
+			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
+		}
+		var commandResponse = new(messages.CommandResult)
+		err = proto.Unmarshal(data, commandResponse)
+		if commandResponse.CommandResult != 0 {
+			fmt.Println(commandResponse.DisplayText)
+		}
 	}
 	return nil
 }
