@@ -21,7 +21,9 @@ var myErrors = map[uint16]string{
 	0x0002: "Port argument is not a valid number",
 	0x0003: "Cannot use a Reserved Portnumber",
 	0x0004: "Couldn't reach server: ",
-	0x0005: "Read failed: ",
+	0x0005: "Write failed: ",
+	0x0006: "Connection not allowed.",
+	0x0007: "Read failed: ",
 }
 
 func init() {
@@ -74,6 +76,16 @@ func main() {
 	}
 }
 
+func memsetRepeat(a []byte, v byte) {
+	if len(a) == 0 {
+		return
+	}
+	a[0] = v
+	for bp := 1; bp < len(a); bp *= 2 {
+		copy(a[bp:], a[:bp])
+	}
+}
+
 func runLoop() error {
 	conn, err := net.DialTCP("tcp", nil, &net.TCPAddr{IP: ipaddr[0], Port: int(port)})
 	if err != nil {
@@ -85,6 +97,21 @@ func runLoop() error {
 	_, err = conn.Write(data)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
+	}
+	memsetRepeat(data, 0)
+	_, err = conn.Read(data)
+	if err != nil {
+		return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
+	}
+	var initResponse = new(messages.InitResponse)
+	err = proto.Unmarshal(data, initResponse)
+	if !initResponse.Allowed {
+		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
+	}
+	var b = make([]byte, 1)
+	for true {
+		os.Stdin.Read(b)
+		fmt.Print(string(b))
 	}
 	return nil
 }
