@@ -79,7 +79,7 @@ func runLoop() error {
 		os.Stdin.Read(b)
 		var command = string(b)
 		command = strings.TrimRight(command, "\r\n")
-		if command == "exit" {
+		if strings.HasPrefix(command, "exit") {
 			break
 		}
 		var comm = &messages.Command{Magic: 0xABCD}

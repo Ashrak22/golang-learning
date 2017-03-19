@@ -192,7 +192,7 @@ func handleCli(conn *net.TCPConn) {
 			err = bettererror.NewBetterError(myFacility, 0x0009, myErrors[0x0009])
 			resp = &messages.CommandResult{Magic: 0x0000, CommandResult: int32(err.(*bettererror.BetterError).Code()), DisplayText: err.Error()}
 		} else {
-			fmt.Printf("Received command %d with args '%s'\r\n", comm.Command, comm.Argstring)
+			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", comm.Command, comm.Argstring)
 			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
 		}
 		memsetRepeat(buffer, 0)
