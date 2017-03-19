@@ -76,6 +76,7 @@ func runLoop() error {
 	var b = make([]byte, 1024)
 	for true {
 		fmt.Print("> ")
+		memset(b, 0)
 		os.Stdin.Read(b)
 		var command = string(b)
 		command = strings.TrimRight(command, "\r\n")
@@ -86,7 +87,7 @@ func runLoop() error {
 		for key, value := range messages.Commands {
 			if strings.HasPrefix(command, key) {
 				comm.Command = value
-				comm.Argstring = command[len(key)+1:]
+				comm.Argstring = string(command[len(key)+1:])
 			}
 		}
 		if comm.Command == 0 {
