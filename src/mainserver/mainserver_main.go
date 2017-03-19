@@ -4,6 +4,7 @@ import (
 	"args"
 	"bettererror"
 	"fmt"
+	"messages"
 	"net"
 	"os"
 	"os/exec"
@@ -11,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/golang/protobuf/proto"
 )
 
 /*Error handling variables and consts*/
@@ -25,6 +28,7 @@ var myErrors = map[uint16]string{
 	0x0006: "Couldn't start listening on Port. ",
 	0x0007: "Error when acceptin connection ",
 	0x0008: "Error when waiting for data: ",
+	0x0009: "Wrong Magic Number received",
 }
 
 var port uint16
@@ -129,9 +133,40 @@ func memsetRepeat(a []byte, v byte) {
 }
 
 func runConnection(conn *net.TCPConn) {
-	var buffer [5 * 1024]byte
+	var buffer [8 * 1024]byte
 	defer conn.Close()
+	memsetRepeat(buffer[0:], 0)
+	data, err := conn.Read(buffer[0:])
+	if err != nil {
+		if strings.Contains(err.Error(), "EOF") {
+			return
+		}
+		err = bettererror.NewBetterError(myFacility, 0x0008, myErrors[0x0008]+err.Error())
+		fmt.Println(err.Error())
+		return
+	}
+	if data == 0 {
+		return
+	}
+	var initmsg = new(messages.Init)
+	err = proto.Unmarshal(buffer[0:], initmsg)
+	if initmsg.Magic != 0xABCD {
+		err := bettererror.NewBetterError(myFacility, 0x0009, myErrors[0x0009])
+		fmt.Println(err.Error())
+		return
+	}
+	if initmsg.App == "cli" {
+		fmt.Println("App cli has connected from ", conn.RemoteAddr().String())
+		handleCli(conn, buffer)
+	}
+}
+
+func handleCli(conn *net.TCPConn, buffer [8 * 1024]byte) {
 	for true {
+		memsetRepeat(buffer[0:], 0)
+		var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
+		buffer, err := proto.Marshal(initResponse)
+		_, err = conn.Write(buffer)
 		memsetRepeat(buffer[0:], 0)
 		data, err := conn.Read(buffer[0:])
 		if err != nil {
@@ -144,10 +179,6 @@ func runConnection(conn *net.TCPConn) {
 		}
 		if data == 0 {
 			break
-		}
-		fmt.Printf("Msg: %s", string(buffer[:]))
-		if strings.Contains(string(buffer[:]), "exit") {
-			return
 		}
 	}
 }

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package messages;
+
+message Init {
+    int32 version = 1;
+    int32 magic = 2;
+    string app = 3;
+}
+
+message InitResponse {
+    int32 magic = 1;
+    bool allowed = 2;
+}
+
+message Ping {
+    int32 version = 1;
+    int32 magic = 2;
+    int32 command = 3;
+}
+
+message Command {
+    int32 version = 1;
+    int32 magic = 2;
+    int32 command = 3;
+    string argstring = 4; 
+}
