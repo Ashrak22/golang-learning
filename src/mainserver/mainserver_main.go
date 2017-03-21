@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"functions"
+
 	"github.com/golang/protobuf/proto"
 )
 
@@ -100,38 +102,21 @@ func runLoop() error {
 		if err != nil {
 			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
 		}
+		defer conn.Close()
 		go runConnection(conn)
 	}
 	return nil
 }
-func memsetRepeat(a []byte, v byte) {
-	if len(a) == 0 {
-		return
-	}
-	a[0] = v
-	for bp := 1; bp < len(a); bp *= 2 {
-		copy(a[bp:], a[:bp])
-	}
-}
 
 func runConnection(conn *net.TCPConn) {
-	var buffer [8 * 1024]byte
-	defer conn.Close()
-	memsetRepeat(buffer[0:], 0)
-	data, err := conn.Read(buffer[0:])
+	var buffer = make([]byte, 100*1024)
+	var initmsg = new(messages.Init)
+
+	err := messages.ReadMessage(conn, initmsg, buffer)
 	if err != nil {
-		if strings.Contains(err.Error(), "EOF") {
-			return
-		}
-		err = bettererror.NewBetterError(myFacility, 0x0008, myErrors[0x0008]+err.Error())
 		fmt.Println(err.Error())
 		return
 	}
-	if data == 0 {
-		return
-	}
-	var initmsg = new(messages.Init)
-	err = proto.Unmarshal(buffer[0:], initmsg)
 	if initmsg.Magic != 0xABCD {
 		err := bettererror.NewBetterError(myFacility, 0x0009, myErrors[0x0009])
 		fmt.Println(err.Error())
@@ -155,7 +140,7 @@ func handleCli(conn *net.TCPConn) {
 
 	buffer = make([]byte, 8*1024)
 	for true {
-		memsetRepeat(buffer, 0)
+		functions.Memset(buffer, 0)
 		data, err := conn.Read(buffer)
 		if err != nil {
 			if strings.Contains(err.Error(), "EOF") {
@@ -182,7 +167,7 @@ func handleCli(conn *net.TCPConn) {
 			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", comm.Command, comm.Argstring)
 			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
 		}
-		memsetRepeat(buffer, 0)
+		functions.Memset(buffer, 0)
 		marshalled, err := proto.Marshal(resp)
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0012, myErrors[0x0012]+err.Error())
