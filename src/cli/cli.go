@@ -51,73 +51,97 @@ func memset(a []byte, v byte) {
 	}
 }
 
+func writeMessage(conn *net.TCPConn, msg interface{}) error {
+	marshalled, err := proto.Marshal(msg.(proto.Message))
+	_, err = conn.Write(marshalled)
+	if err != nil {
+		return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
+	}
+	return nil
+}
+
+func readMessage(conn *net.TCPConn, msg interface{}, buffer []byte) error {
+	memset(buffer, 0)
+	length, err := conn.Read(buffer)
+	if err != nil {
+		return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
+	}
+	err = proto.Unmarshal(buffer[:length], msg.(proto.Message))
+	if err != nil {
+		return bettererror.NewBetterError(myFacility, 0x0009, myErrors[0x0009]+err.Error())
+	}
+	return nil
+}
+
+func getCommand() (*messages.Command, error) {
+	var b = make([]byte, 8*1024)
+	fmt.Print("> ")
+	memset(b, 0)
+	os.Stdin.Read(b)
+	var command = string(b)
+
+	trimmed := strings.Trim(command, "\r\n\t "+string(0)) + string(0)
+	if strings.HasPrefix(trimmed, "exit") {
+		return nil, bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010])
+	}
+
+	var comm = &messages.Command{Magic: 0xABCD}
+	for key, value := range messages.Commands {
+		if strings.HasPrefix(command, key) {
+			comm.Command = value
+			comm.Argstring = string(command[len(key)+1:])
+		}
+	}
+	if comm.Command == 0 {
+		return nil, bettererror.NewBetterError(myFacility, 0x0011, fmt.Sprintf(myErrors[0x0011], trimmed))
+	}
+	return comm, nil
+}
+
 func runLoop() error {
 	conn, err := net.DialTCP("tcp", nil, &net.TCPAddr{IP: ipaddr[0], Port: int(port)})
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004]+err.Error())
 	}
+	var buffer = make([]byte, 100*1024)
 	defer conn.Close()
+
 	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli"}
-	data, err := proto.Marshal(initMessage)
-	_, err = conn.Write(data)
+	writeMessage(conn, initMessage)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
 	}
-	memset(data, 0)
-	_, err = conn.Read(data)
-	if err != nil {
-		return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
-	}
+
 	var initResponse = new(messages.InitResponse)
-	err = proto.Unmarshal(data, initResponse)
+	err = readMessage(conn, initResponse, buffer)
 	if !initResponse.Allowed {
 		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 	}
-	var b = make([]byte, 1024)
-	data = make([]byte, 8*1024)
+
 	for true {
-		fmt.Print("> ")
-		memset(b, 0)
-		os.Stdin.Read(b)
-		var command = string(b)
-		command = strings.Trim(command, "\r\n")
-		if strings.HasPrefix(command, "exit") {
-			break
-		}
-		var comm = &messages.Command{Magic: 0xABCD}
-		for key, value := range messages.Commands {
-			if strings.HasPrefix(command, key) {
-				comm.Command = value
-				comm.Argstring = string(command[len(key)+1:])
+		command, err := getCommand()
+		if err != nil {
+			if err.(*bettererror.BetterError).Code() == 0x10030010 {
+				break
 			}
-		}
-		fmt.Println(comm.Argstring)
-		if comm.Command == 0 {
-			fmt.Println(bettererror.NewBetterError(myFacility, 0x0008, myErrors[0x0008]).Error())
+			fmt.Println(err.Error())
 			continue
 		}
-		memset(data, 0)
-		fmt.Printf("%d\r\n", len(data))
-		marshalled, err := proto.Marshal(comm)
-		fmt.Printf("%d\r\n", len(marshalled))
-		_, err = conn.Write(marshalled)
+
+		writeMessage(conn, command)
 		if err != nil {
-			return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
+			return err
 		}
-		memset(data, 0)
-		length, err := conn.Read(data)
-		if err != nil {
-			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
-		}
+
 		var commandResponse = new(messages.CommandResult)
-		fmt.Printf("%d\r\n", length)
-		err = proto.Unmarshal(data[:length], commandResponse)
+		readMessage(conn, commandResponse, buffer)
 		if err != nil {
-			fmt.Println(bettererror.NewBetterError(myFacility, 0x0009, myErrors[0x0009]+err.Error()).Error())
+			return err
 		}
 		if commandResponse.CommandResult != 0 {
 			fmt.Println(commandResponse.DisplayText)
 		}
+
 	}
 	return nil
 }
