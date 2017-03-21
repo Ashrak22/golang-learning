@@ -167,7 +167,7 @@ func handleCli(conn *net.TCPConn) {
 			break
 		}
 		var comm = new(messages.Command)
-		err = proto.Unmarshal(buffer, comm)
+		err = proto.Unmarshal(buffer[:data], comm)
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0011, myErrors[0x0011]+err.Error())
 			fmt.Println(err.Error())

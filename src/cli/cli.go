@@ -102,12 +102,12 @@ func runLoop() error {
 			return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
 		}
 		memset(data, 0)
-		_, err = conn.Read(data)
+		length, err = conn.Read(data)
 		if err != nil {
 			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
 		}
 		var commandResponse = new(messages.CommandResult)
-		err = proto.Unmarshal(data, commandResponse)
+		err = proto.Unmarshal(data[:length], commandResponse)
 		if commandResponse.CommandResult != 0 {
 			fmt.Println(commandResponse.DisplayText)
 		}
