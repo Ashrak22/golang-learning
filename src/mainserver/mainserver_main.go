@@ -152,8 +152,10 @@ func handleCli(conn *net.TCPConn) {
 		fmt.Println(err.Error())
 		return
 	}
-	memsetRepeat(buffer, 0)
+
+	buffer = make([]byte, 8*1024)
 	for true {
+		memsetRepeat(buffer, 0)
 		data, err := conn.Read(buffer)
 		if err != nil {
 			if strings.Contains(err.Error(), "EOF") {
@@ -181,12 +183,12 @@ func handleCli(conn *net.TCPConn) {
 			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
 		}
 		memsetRepeat(buffer, 0)
-		buffer, err = proto.Marshal(resp)
+		marshalled, err := proto.Marshal(resp)
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0012, myErrors[0x0012]+err.Error())
 			fmt.Println(err.Error())
 		}
-		_, err = conn.Write(buffer)
+		_, err = conn.Write(marshalled)
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
 			fmt.Println(err.Error())

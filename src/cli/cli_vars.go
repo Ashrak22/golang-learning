@@ -13,6 +13,7 @@ var myErrors = map[uint16]string{
 	0x0006: "Connection not allowed.",
 	0x0007: "Read failed: ",
 	0x0008: "Unknown command",
+	0x0009: "Marshilling error: ",
 }
 
 var ipaddr []net.IP

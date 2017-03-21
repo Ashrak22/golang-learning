@@ -74,6 +74,7 @@ func runLoop() error {
 		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 	}
 	var b = make([]byte, 1024)
+	data = make([]byte, 8*1024)
 	for true {
 		fmt.Print("> ")
 		memset(b, 0)
@@ -96,18 +97,24 @@ func runLoop() error {
 			continue
 		}
 		memset(data, 0)
-		data, err = proto.Marshal(comm)
-		_, err = conn.Write(data)
+		fmt.Printf("%d\r\n", len(data))
+		marshalled, err := proto.Marshal(comm)
+		fmt.Printf("%d\r\n", len(marshalled))
+		_, err = conn.Write(marshalled)
 		if err != nil {
 			return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
 		}
 		memset(data, 0)
-		length, err = conn.Read(data)
+		length, err := conn.Read(data)
 		if err != nil {
 			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
 		}
 		var commandResponse = new(messages.CommandResult)
+		fmt.Printf("%d\r\n", length)
 		err = proto.Unmarshal(data[:length], commandResponse)
+		if err != nil {
+			fmt.Println(bettererror.NewBetterError(myFacility, 0x0009, myErrors[0x0009]+err.Error()).Error())
+		}
 		if commandResponse.CommandResult != 0 {
 			fmt.Println(commandResponse.DisplayText)
 		}
