@@ -16,25 +16,6 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-/*Error handling variables and consts*/
-const myFacility uint16 = 0x1001
-
-var myErrors = map[uint16]string{
-	0x0001: "Port argument is not a valid number",
-	0x0002: "Cannot use a Reserved Portnumber",
-	0x0003: "Cannot execute screen",
-	0x0004: "Cannot execute cli command",
-	0x0005: "Listening Port can't be 0",
-	0x0006: "Couldn't start listening on Port. ",
-	0x0007: "Error when acceptin connection ",
-	0x0008: "Error when waiting for data: ",
-	0x0009: "Wrong Magic Number received",
-	0x0010: "Error when writing data: ",
-}
-
-var port uint16
-var cli bool
-
 func init() {
 	bettererror.RegisterFacility(myFacility, "MainServer")
 }
@@ -189,7 +170,7 @@ func handleCli(conn *net.TCPConn) {
 		proto.Unmarshal(buffer, comm)
 		var resp *messages.CommandResult
 		if comm.Magic != 0xABCD {
-			err = bettererror.NewBetterError(myFacility, 0x0009, myErrors[0x0009])
+			err = bettererror.NewBetterError(myFacility, 0x0009, fmt.Sprintf("%s: 0x%4X", myErrors[0x0009], comm.Magic))
 			resp = &messages.CommandResult{Magic: 0x0000, CommandResult: int32(err.(*bettererror.BetterError).Code()), DisplayText: err.Error()}
 		} else {
 			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", comm.Command, comm.Argstring)
