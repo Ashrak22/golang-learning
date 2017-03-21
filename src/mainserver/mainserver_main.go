@@ -167,7 +167,11 @@ func handleCli(conn *net.TCPConn) {
 			break
 		}
 		var comm = new(messages.Command)
-		proto.Unmarshal(buffer, comm)
+		err = proto.Unmarshal(buffer, comm)
+		if err != nil {
+			err = bettererror.NewBetterError(myFacility, 0x0011, myErrors[0x0011]+err.Error())
+			fmt.Println(err.Error())
+		}
 		var resp *messages.CommandResult
 		if comm.Magic != 0xABCD {
 			err = bettererror.NewBetterError(myFacility, 0x0009, fmt.Sprintf("%s: 0x%4X", myErrors[0x0009], comm.Magic))
@@ -177,7 +181,11 @@ func handleCli(conn *net.TCPConn) {
 			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
 		}
 		memsetRepeat(buffer, 0)
-		buffer, _ = proto.Marshal(resp)
+		buffer, err = proto.Marshal(resp)
+		if err != nil {
+			err = bettererror.NewBetterError(myFacility, 0x0012, myErrors[0x0012]+err.Error())
+			fmt.Println(err.Error())
+		}
 		_, err = conn.Write(buffer)
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())

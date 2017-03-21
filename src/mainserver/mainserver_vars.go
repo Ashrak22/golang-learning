@@ -14,6 +14,8 @@ var myErrors = map[uint16]string{
 	0x0008: "Error when waiting for data: ",
 	0x0009: "Wrong Magic Number received",
 	0x0010: "Error when writing data: ",
+	0x0011: "Error while unmarshalling data: ",
+	0x0012: "Error while marshalling data: ",
 }
 
 var port uint16

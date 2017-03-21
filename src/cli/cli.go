@@ -79,7 +79,7 @@ func runLoop() error {
 		memset(b, 0)
 		os.Stdin.Read(b)
 		var command = string(b)
-		command = strings.TrimRight(command, "\r\n")
+		command = strings.Trim(command, "\r\n")
 		if strings.HasPrefix(command, "exit") {
 			break
 		}
@@ -90,6 +90,7 @@ func runLoop() error {
 				comm.Argstring = string(command[len(key)+1:])
 			}
 		}
+		fmt.Println(comm.Argstring)
 		if comm.Command == 0 {
 			fmt.Println(bettererror.NewBetterError(myFacility, 0x0008, myErrors[0x0008]).Error())
 			continue
