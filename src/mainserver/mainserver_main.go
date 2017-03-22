@@ -10,12 +10,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
-	"strings"
 	"time"
-
-	"functions"
-
-	"github.com/golang/protobuf/proto"
 )
 
 func init() {
@@ -130,35 +125,21 @@ func runConnection(conn *net.TCPConn) {
 
 func handleCli(conn *net.TCPConn) {
 	var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
-	buffer, _ := proto.Marshal(initResponse)
-	_, err := conn.Write(buffer)
+	err := messages.WriteMessage(conn, initResponse)
 	if err != nil {
-		err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
 		fmt.Println(err.Error())
 		return
 	}
 
-	buffer = make([]byte, 8*1024)
+	buffer := make([]byte, 100*1024)
 	for true {
-		functions.Memset(buffer, 0)
-		data, err := conn.Read(buffer)
+		var comm = new(messages.Command)
+		err = messages.ReadMessage(conn, comm, buffer)
 		if err != nil {
-			if strings.Contains(err.Error(), "EOF") {
-				return
-			}
-			err = bettererror.NewBetterError(myFacility, 0x0008, myErrors[0x0008]+err.Error())
 			fmt.Println(err.Error())
 			return
 		}
-		if data == 0 {
-			break
-		}
-		var comm = new(messages.Command)
-		err = proto.Unmarshal(buffer[:data], comm)
-		if err != nil {
-			err = bettererror.NewBetterError(myFacility, 0x0011, myErrors[0x0011]+err.Error())
-			fmt.Println(err.Error())
-		}
+
 		var resp *messages.CommandResult
 		if comm.Magic != 0xABCD {
 			err = bettererror.NewBetterError(myFacility, 0x0009, fmt.Sprintf("%s: 0x%4X", myErrors[0x0009], comm.Magic))
@@ -167,13 +148,8 @@ func handleCli(conn *net.TCPConn) {
 			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", comm.Command, comm.Argstring)
 			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
 		}
-		functions.Memset(buffer, 0)
-		marshalled, err := proto.Marshal(resp)
-		if err != nil {
-			err = bettererror.NewBetterError(myFacility, 0x0012, myErrors[0x0012]+err.Error())
-			fmt.Println(err.Error())
-		}
-		_, err = conn.Write(marshalled)
+
+		err = messages.WriteMessage(conn, resp)
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
 			fmt.Println(err.Error())

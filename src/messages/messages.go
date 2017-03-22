@@ -13,8 +13,8 @@ func init() {
 	bettererror.RegisterFacility(myFacility, "messages")
 }
 
-func WriteMessage(conn *net.TCPConn, msg interface{}) error {
-	marshalled, err := proto.Marshal(msg.(proto.Message))
+func WriteMessage(conn *net.TCPConn, msg proto.Message) error {
+	marshalled, err := proto.Marshal(msg)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0003, fmt.Sprintf(myErrors[0x0003], err.Error()))
 	}
@@ -25,13 +25,13 @@ func WriteMessage(conn *net.TCPConn, msg interface{}) error {
 	return nil
 }
 
-func ReadMessage(conn *net.TCPConn, msg interface{}, buffer []byte) error {
+func ReadMessage(conn *net.TCPConn, msg proto.Message, buffer []byte) error {
 	functions.Memset(buffer, 0)
 	length, err := conn.Read(buffer)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0001, fmt.Sprintf(myErrors[0x0001], err.Error()))
 	}
-	err = proto.Unmarshal(buffer[:length], msg.(proto.Message))
+	err = proto.Unmarshal(buffer[:length], msg)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0004, fmt.Sprintf(myErrors[0x0004], err.Error()))
 	}
