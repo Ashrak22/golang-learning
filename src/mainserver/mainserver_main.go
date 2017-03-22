@@ -119,11 +119,11 @@ func runConnection(conn *net.TCPConn) {
 	}
 	if initmsg.App == "cli" {
 		fmt.Println("App cli has connected from ", conn.RemoteAddr().String())
-		handleCli(conn)
+		handleCli(conn, initmsg.Port)
 	}
 }
 
-func handleCli(conn *net.TCPConn) {
+func handleCli(conn *net.TCPConn, commPort int32) {
 	var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
 	err := messages.WriteMessage(conn, initResponse)
 	if err != nil {
@@ -156,4 +156,8 @@ func handleCli(conn *net.TCPConn) {
 			return
 		}
 	}
+}
+
+func sendCommands(portNumber int32, host string) {
+
 }

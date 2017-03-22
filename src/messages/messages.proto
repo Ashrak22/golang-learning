@@ -6,6 +6,7 @@ message Init {
     int32 version = 1;
     int32 magic = 2;
     string app = 3;
+    int32 port = 4;
 }
 
 message InitResponse {
@@ -16,7 +17,15 @@ message InitResponse {
 message Ping {
     int32 version = 1;
     int32 magic = 2;
-    int32 command = 3;
+}
+
+message MsgType {
+    int32 magic = 1;
+    enum Types {
+        CommandResult = 0;
+        CommandPush = 1;
+    }
+    Types msgtype = 2;
 }
 
 message Command {
