@@ -26,3 +26,8 @@ func setPort(vs ...string) error {
 	port = uint16(i)
 	return nil
 }
+
+func setCompression(vs ...string) error {
+	compress = vs[0] == "true"
+	return nil
+}

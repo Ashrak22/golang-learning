@@ -27,6 +27,11 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	err = a.RegisterArg("compression", args.ArgFunc(setCompression), 1, "--")
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	err = a.EvalArgs(os.Args)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -72,7 +77,6 @@ func runLoop() error {
 	}
 	var buffer = make([]byte, 100*1024)
 	defer conn.Close()
-	compress := false
 	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli", Compress: compress, Port: 40000}
 	err = messages.WriteMessage(conn, initMessage, false)
 	if err != nil {
@@ -87,7 +91,7 @@ func runLoop() error {
 	if !initResponse.Allowed {
 		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 	}
-
+	fmt.Println(compress)
 	for true {
 		command, err := getCommand()
 		if err != nil {
