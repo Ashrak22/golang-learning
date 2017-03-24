@@ -107,7 +107,7 @@ func runConnection(conn *net.TCPConn) {
 	var buffer = make([]byte, 100*1024)
 	var initmsg = new(messages.Init)
 
-	if err := messages.ReadMessage(conn, initmsg, buffer); err != nil {
+	if err := messages.ReadMessage(conn, initmsg, buffer, false); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
@@ -118,14 +118,14 @@ func runConnection(conn *net.TCPConn) {
 	}
 	if initmsg.App == "cli" {
 		fmt.Println("App cli has connected from ", conn.RemoteAddr().String())
-		handleCli(conn, initmsg.Port)
+		handleCli(conn, initmsg.Port, initmsg.Compress)
 	}
 }
 
-func handleCli(conn *net.TCPConn, commPort int32) {
+func handleCli(conn *net.TCPConn, commPort int32, compress bool) {
 	var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
 
-	if err := messages.WriteMessage(conn, initResponse); err != nil {
+	if err := messages.WriteMessage(conn, initResponse, compress); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
@@ -134,7 +134,7 @@ func handleCli(conn *net.TCPConn, commPort int32) {
 	for true {
 		var comm = new(messages.Command)
 
-		if err := messages.ReadMessage(conn, comm, buffer); err != nil {
+		if err := messages.ReadMessage(conn, comm, buffer, compress); err != nil {
 			fmt.Println(err.Error())
 			return
 		}
@@ -148,7 +148,7 @@ func handleCli(conn *net.TCPConn, commPort int32) {
 			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
 		}
 
-		if err := messages.WriteMessage(conn, resp); err != nil {
+		if err := messages.WriteMessage(conn, resp, compress); err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
 			fmt.Println(err.Error())
 			return

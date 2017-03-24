@@ -72,15 +72,15 @@ func runLoop() error {
 	}
 	var buffer = make([]byte, 100*1024)
 	defer conn.Close()
-
-	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli"}
-	err = messages.WriteMessage(conn, initMessage)
+	compress := false
+	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli", Compress: compress, Port: 40000}
+	err = messages.WriteMessage(conn, initMessage, false)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
 	}
 
 	var initResponse = new(messages.InitResponse)
-	err = messages.ReadMessage(conn, initResponse, buffer)
+	err = messages.ReadMessage(conn, initResponse, buffer, compress)
 	if !initResponse.Allowed {
 		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 	}
@@ -95,13 +95,13 @@ func runLoop() error {
 			continue
 		}
 
-		err = messages.WriteMessage(conn, command)
+		err = messages.WriteMessage(conn, command, compress)
 		if err != nil {
 			return err
 		}
 
 		var commandResponse = new(messages.CommandResult)
-		err = messages.ReadMessage(conn, commandResponse, buffer)
+		err = messages.ReadMessage(conn, commandResponse, buffer, compress)
 		if err != nil {
 			return err
 		}
