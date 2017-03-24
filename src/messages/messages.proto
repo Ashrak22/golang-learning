@@ -7,6 +7,7 @@ message Init {
     int32 magic = 2;
     string app = 3;
     int32 port = 4;
+    bool compress = 5;
 }
 
 message InitResponse {
@@ -38,4 +39,9 @@ message CommandResult {
     int32 magic = 1;
     int32 commandResult = 2;
     string displayText = 3;
+}
+
+message CommandPush {
+    int32 magic = 1;
+    map<string, int32> commands = 2;
 }

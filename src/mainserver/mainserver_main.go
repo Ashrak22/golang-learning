@@ -42,7 +42,7 @@ func pullUpCli(vs ...string) error {
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
 		}
-		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "cli /port "+strconv.Itoa(int(port))+" \n")
+		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "cli --port "+strconv.Itoa(int(port))+" --host localhost --compression true \n")
 		_, err = ret.Output()
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
@@ -107,8 +107,7 @@ func runConnection(conn *net.TCPConn) {
 	var buffer = make([]byte, 100*1024)
 	var initmsg = new(messages.Init)
 
-	err := messages.ReadMessage(conn, initmsg, buffer)
-	if err != nil {
+	if err := messages.ReadMessage(conn, initmsg, buffer, false); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
@@ -119,6 +118,6 @@ func runConnection(conn *net.TCPConn) {
 	}
 	if initmsg.App == "cli" {
 		fmt.Println("App cli has connected from ", conn.RemoteAddr().String())
-		handleCli(conn, initmsg.Port)
+		handleCli(conn, initmsg.Port, initmsg.Compress)
 	}
 }

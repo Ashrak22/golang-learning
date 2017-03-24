@@ -20,3 +20,4 @@ var myErrors = map[uint16]string{
 
 var ipaddr []net.IP
 var port uint16
+var compress = false
