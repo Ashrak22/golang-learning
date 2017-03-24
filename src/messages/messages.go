@@ -69,8 +69,9 @@ func writeMessageCompressed(conn *net.TCPConn, msg proto.Message) error {
 		return bettererror.NewBetterError(myFacility, 0x0005, fmt.Sprintf(myErrors[0x0005], err.Error()))
 	}
 	compressor.Close()
-
-	_, err = conn.Write(b.Bytes())
+	localBuf := make([]byte, 100*1024)
+	length, err := b.Read(localBuf)
+	_, err = conn.Write(localBuf[:length])
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0002, fmt.Sprintf(myErrors[0x0002], err.Error()))
 	}
@@ -87,11 +88,12 @@ func readMessageCompressed(conn *net.TCPConn, msg proto.Message, buffer []byte) 
 		return bettererror.NewBetterError(myFacility, 0x0001, fmt.Sprintf(myErrors[0x0001], err.Error()))
 	}
 	//uncompress
-	b := bytes.NewReader(buffer[0:length])
+	fmt.Println(length)
+	b := bytes.NewReader(buffer[:length+1])
 	uncompressor, _ := gzip.NewReader(b)
 	length, err = uncompressor.Read(localBuff)
 	if err != nil {
-		return bettererror.NewBetterError(myFacility, 0x0001, fmt.Sprintf(myErrors[0x0001], err.Error()))
+		return bettererror.NewBetterError(myFacility, 0x0006, fmt.Sprintf(myErrors[0x0006], err.Error()))
 	}
 
 	err = proto.Unmarshal(localBuff[:length], msg)
