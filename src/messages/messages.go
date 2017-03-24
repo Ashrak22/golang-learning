@@ -69,9 +69,10 @@ func writeMessageCompressed(conn *net.TCPConn, msg proto.Message) error {
 		return bettererror.NewBetterError(myFacility, 0x0005, fmt.Sprintf(myErrors[0x0005], err.Error()))
 	}
 	compressor.Close()
+
 	localBuf := make([]byte, 100*1024)
 	length, err := b.Read(localBuf)
-	_, err = conn.Write(localBuf[:length])
+	_, err = conn.Write(localBuf[])
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0002, fmt.Sprintf(myErrors[0x0002], err.Error()))
 	}

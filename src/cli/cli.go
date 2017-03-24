@@ -72,7 +72,7 @@ func runLoop() error {
 	}
 	var buffer = make([]byte, 100*1024)
 	defer conn.Close()
-	compress := false
+	compress := true
 	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli", Compress: compress, Port: 40000}
 	err = messages.WriteMessage(conn, initMessage, false)
 	if err != nil {
@@ -81,6 +81,9 @@ func runLoop() error {
 
 	var initResponse = new(messages.InitResponse)
 	err = messages.ReadMessage(conn, initResponse, buffer, compress)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	if !initResponse.Allowed {
 		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 	}
