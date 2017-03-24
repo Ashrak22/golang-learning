@@ -42,7 +42,7 @@ func pullUpCli(vs ...string) error {
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0003, myErrors[0x0003])
 		}
-		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "cli /port "+strconv.Itoa(int(port))+" \n")
+		ret = exec.Command("screen", "-S", "cli", "-p", "0", "-X", "stuff", "cli --port "+strconv.Itoa(int(port))+" --host localhost --compression true \n")
 		_, err = ret.Output()
 		if err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
