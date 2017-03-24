@@ -47,6 +47,7 @@ func readMessageUncompressed(conn *net.TCPConn, msg proto.Message, buffer []byte
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0001, fmt.Sprintf(myErrors[0x0001], err.Error()))
 	}
+	fmt.Println(length)
 	err = proto.Unmarshal(buffer[:length], msg)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0004, fmt.Sprintf(myErrors[0x0004], err.Error()))
@@ -63,16 +64,17 @@ func writeMessageCompressed(conn *net.TCPConn, msg proto.Message) error {
 	}
 
 	//compress message
-	compressor := gzip.NewWriter(&b)
+	compressor, err := gzip.NewWriterLevel(&b, gzip.BestCompression)
 	_, err = compressor.Write(marshalled)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0005, fmt.Sprintf(myErrors[0x0005], err.Error()))
 	}
+	compressor.Flush()
 	compressor.Close()
 
 	localBuf := make([]byte, 100*1024)
 	length, err := b.Read(localBuf)
-	_, err = conn.Write(localBuf[0 : length+30])
+	_, err = conn.Write(localBuf[:length])
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0002, fmt.Sprintf(myErrors[0x0002], err.Error()))
 	}
@@ -90,7 +92,7 @@ func readMessageCompressed(conn *net.TCPConn, msg proto.Message, buffer []byte) 
 	}
 	//uncompress
 	fmt.Println(length)
-	b := bytes.NewReader(buffer[:length+1])
+	b := bytes.NewReader(buffer[:length])
 	uncompressor, _ := gzip.NewReader(b)
 	length, err = uncompressor.Read(localBuff)
 	if err != nil {

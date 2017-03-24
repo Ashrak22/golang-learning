@@ -72,7 +72,7 @@ func runLoop() error {
 	}
 	var buffer = make([]byte, 100*1024)
 	defer conn.Close()
-	compress := true
+	compress := false
 	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli", Compress: compress, Port: 40000}
 	err = messages.WriteMessage(conn, initMessage, false)
 	if err != nil {
