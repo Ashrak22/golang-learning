@@ -47,7 +47,7 @@ func getCommand() (*messages.Command, error) {
 	os.Stdin.Read(b)
 	var command = string(b)
 
-	trimmed := strings.Trim(command, "\r\n\t "+string(0)) + string(0)
+	trimmed := strings.Trim(command, "\r\n\t "+string(0))
 	if strings.HasPrefix(trimmed, "exit") {
 		return nil, bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010])
 	}

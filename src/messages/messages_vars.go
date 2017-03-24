@@ -9,6 +9,7 @@ var myErrors = map[uint16]string{
 	0x0004: "Error while unmarshaling: %s",
 	0x0005: "Error while compressing: %s",
 	0x0006: "Error while uncompressing: %s",
+	0x0007: "exit",
 }
 
 var Commands = map[string]int32{

@@ -135,6 +135,10 @@ func handleCli(conn *net.TCPConn, commPort int32, compress bool) {
 		var comm = new(messages.Command)
 
 		if err := messages.ReadMessage(conn, comm, buffer, compress); err != nil {
+			if err.(*bettererror.BetterError).Code() == 0x00020007 {
+				fmt.Println("Client disconnected")
+				return
+			}
 			fmt.Println(err.Error())
 			return
 		}

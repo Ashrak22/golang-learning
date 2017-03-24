@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"functions"
 	"net"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -45,9 +46,12 @@ func readMessageUncompressed(conn *net.TCPConn, msg proto.Message, buffer []byte
 	functions.Memset(buffer, 0)
 	length, err := conn.Read(buffer)
 	if err != nil {
+		if strings.Contains(err.Error(), "EOF") {
+			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007])
+		}
 		return bettererror.NewBetterError(myFacility, 0x0001, fmt.Sprintf(myErrors[0x0001], err.Error()))
 	}
-	fmt.Println(length)
+
 	err = proto.Unmarshal(buffer[:length], msg)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0004, fmt.Sprintf(myErrors[0x0004], err.Error()))
@@ -72,9 +76,9 @@ func writeMessageCompressed(conn *net.TCPConn, msg proto.Message) error {
 	compressor.Flush()
 	compressor.Close()
 
-	localBuf := make([]byte, 100*1024)
-	length, err := b.Read(localBuf)
-	_, err = conn.Write(localBuf[:length])
+	/*localBuf := make([]byte, 100*1024)
+	length, err := b.Read(localBuf)*/
+	_, err = conn.Write(b.Bytes())
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0002, fmt.Sprintf(myErrors[0x0002], err.Error()))
 	}
@@ -88,10 +92,12 @@ func readMessageCompressed(conn *net.TCPConn, msg proto.Message, buffer []byte) 
 
 	length, err := conn.Read(buffer)
 	if err != nil {
+		if strings.Contains(err.Error(), "EOF") {
+			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007])
+		}
 		return bettererror.NewBetterError(myFacility, 0x0001, fmt.Sprintf(myErrors[0x0001], err.Error()))
 	}
 	//uncompress
-	fmt.Println(length)
 	b := bytes.NewReader(buffer[:length])
 	uncompressor, _ := gzip.NewReader(b)
 	length, err = uncompressor.Read(localBuff)
