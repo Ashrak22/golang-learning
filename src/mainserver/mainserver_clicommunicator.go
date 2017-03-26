@@ -5,23 +5,32 @@ import (
 	"fmt"
 	"messages"
 	"net"
+	"strconv"
+	"strings"
 )
 
-var channels map[string]chan bool
+var climap = map[string]bool{}
 
-func handleCli(conn *net.TCPConn, commPort int32, compress bool) {
+func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 	var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
-
+	var name string
+	if strings.Contains(conn.RemoteAddr().(*net.TCPAddr).IP.String(), ":") {
+		name = "[" + conn.RemoteAddr().(*net.TCPAddr).IP.String() + "]:" + strconv.Itoa(commPort)
+	} else {
+		name = conn.RemoteAddr().(*net.TCPAddr).IP.String() + ":" + strconv.Itoa(commPort)
+	}
+	climap[name] = compress
+	defer removeConnection(name)
+	go sendCommands()
 	if err := messages.WriteMessage(conn, initResponse, compress); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	buffer := make([]byte, 100*1024)
 	for true {
 		var comm = new(messages.Command)
 
-		if err := messages.ReadMessage(conn, comm, buffer, compress); err != nil {
+		if err := messages.ReadMessage(conn, comm, compress); err != nil {
 			if err.(*bettererror.BetterError).Code() == 0x00020007 {
 				fmt.Println("Client disconnected")
 				return
@@ -47,6 +56,24 @@ func handleCli(conn *net.TCPConn, commPort int32, compress bool) {
 	}
 }
 
-func sendCommands(portNumber int32, host string) {
+func sendCommands() {
+	for key, value := range climap {
+		conn, err := net.Dial("tcp", key)
+		if err != nil {
+			fmt.Println(bettererror.NewBetterError(myFacility, 0x0013, fmt.Sprintf(myErrors[0x0013], key, err.Error())).Error())
+			continue
+		}
+		var msg = new(messages.CommandPush)
+		msg.Magic = 0xABCD
+		msg.Commands = Commands
+		if err = messages.WriteMessage(conn.(*net.TCPConn), msg, value); err != nil {
+			fmt.Println(err.Error())
+			continue
+		}
+	}
 
+}
+
+func removeConnection(conn string) {
+	delete(climap, conn)
 }

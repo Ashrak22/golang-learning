@@ -23,7 +23,7 @@ func NewBetterError(facility uint16, code uint16, msg string) *BetterError {
 
 //Error returns error Message.
 func (e *BetterError) Error() string {
-	return fmt.Sprintf("Package: %s \r\nErrorcode: 0x%08x\r\nMessage: %s\r\n", facilities[e.facility], e.Code(), e.msg)
+	return fmt.Sprintf("Package: %s \r\nErrorcode: 0x%08x\r\nMessage: %s", facilities[e.facility], e.Code(), e.msg)
 }
 
 //Code returns error code bundled together with facility.

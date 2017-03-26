@@ -58,7 +58,7 @@ func getCommand() (*messages.Command, error) {
 	}
 
 	var comm = &messages.Command{Magic: 0xABCD}
-	for key, value := range messages.Commands {
+	for key, value := range commands {
 		if strings.HasPrefix(trimmed, key) {
 			comm.Command = value
 			comm.Argstring = string(trimmed[len(key)+1:])
@@ -75,8 +75,8 @@ func runLoop() error {
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004]+err.Error())
 	}
-	var buffer = make([]byte, 100*1024)
 	defer conn.Close()
+
 	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli", Compress: compress, Port: 40000}
 	err = messages.WriteMessage(conn, initMessage, false)
 	if err != nil {
@@ -84,14 +84,13 @@ func runLoop() error {
 	}
 
 	var initResponse = new(messages.InitResponse)
-	err = messages.ReadMessage(conn, initResponse, buffer, compress)
+	err = messages.ReadMessage(conn, initResponse, compress)
 	if err != nil {
 		fmt.Println(err.Error())
-	}
-	if !initResponse.Allowed {
+	} else if !initResponse.Allowed {
 		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 	}
-	fmt.Println(compress)
+
 	for true {
 		command, err := getCommand()
 		if err != nil {
@@ -108,7 +107,7 @@ func runLoop() error {
 		}
 
 		var commandResponse = new(messages.CommandResult)
-		err = messages.ReadMessage(conn, commandResponse, buffer, compress)
+		err = messages.ReadMessage(conn, commandResponse, compress)
 		if err != nil {
 			return err
 		}

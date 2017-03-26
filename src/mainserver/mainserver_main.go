@@ -104,10 +104,9 @@ func runLoop() error {
 }
 
 func runConnection(conn *net.TCPConn) {
-	var buffer = make([]byte, 100*1024)
 	var initmsg = new(messages.Init)
 
-	if err := messages.ReadMessage(conn, initmsg, buffer, false); err != nil {
+	if err := messages.ReadMessage(conn, initmsg, false); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
@@ -118,6 +117,6 @@ func runConnection(conn *net.TCPConn) {
 	}
 	if initmsg.App == "cli" {
 		fmt.Println("App cli has connected from ", conn.RemoteAddr().String())
-		handleCli(conn, initmsg.Port, initmsg.Compress)
+		handleCli(conn, int(initmsg.Port), initmsg.Compress)
 	}
 }
