@@ -91,6 +91,11 @@ func runLoop() error {
 		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 	}
 
+	go receiveCommands()
+	if erro := recover(); err != nil {
+		return erro.(error)
+	}
+
 	for true {
 		command, err := getCommand()
 		if err != nil {

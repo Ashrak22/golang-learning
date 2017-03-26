@@ -44,8 +44,19 @@ func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 			err := bettererror.NewBetterError(myFacility, 0x0009, fmt.Sprintf("%s: 0x%4X", myErrors[0x0009], comm.Magic))
 			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: int32(err.Code()), DisplayText: err.Error()}
 		} else {
+			var err error
 			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", comm.Command, comm.Argstring)
-			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
+			switch comm.Command {
+			case 0x00010005:
+				err = resendCommands()
+			default:
+				err = nil
+			}
+			if err != nil {
+				resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: int32(err.(*bettererror.BetterError).Code()), DisplayText: err.Error()}
+			} else {
+				resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: 0}
+			}
 		}
 
 		if err := messages.WriteMessage(conn, resp, compress); err != nil {
@@ -54,6 +65,11 @@ func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 			return
 		}
 	}
+}
+
+func resendCommands() error {
+	go sendCommands()
+	return nil
 }
 
 func sendCommands() {

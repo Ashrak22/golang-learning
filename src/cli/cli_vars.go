@@ -16,6 +16,7 @@ var myErrors = map[uint16]string{
 	0x0009: "Marshalling error: ",
 	0x0010: "exit",
 	0x0011: "Unknown command: %s",
+	0x0012: "Cannot listen on specified port: %s",
 }
 
 var ipaddr []net.IP
