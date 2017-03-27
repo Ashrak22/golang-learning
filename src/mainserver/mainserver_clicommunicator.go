@@ -79,7 +79,7 @@ func sendCommands() {
 		}
 		var msg = new(messages.CommandPush)
 		msg.Magic = 0xABCD
-		msg.Commands = Commands
+		msg.Commands = apps.flattenCommands()
 		if err = messages.WriteMessage(conn.(*net.TCPConn), msg, value); err != nil {
 			fmt.Println(err.Error())
 			continue
