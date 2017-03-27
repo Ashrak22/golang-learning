@@ -17,19 +17,19 @@ var myErrors = map[uint16]string{
 	0x0011: "Error while unmarshalling data: ",
 	0x0012: "Error while marshalling data: ",
 	0x0013: "Can't connect to cli: %s because of: %s",
+	0x0014: "App %04X, %s already installed",
 }
 
 var port uint16
 var cli bool
 
-var Commands = map[string]int32{
-	//0x0000xxxx - control Commands
-	"exit": 0x00000001,
+var climap = map[string]bool{}
 
+var commands = map[string]int16{
 	//0x0001xxxx - mainserver Commands
-	"create config":      0x00010001,
-	"set default config": 0x00010002,
-	"read config":        0x00010003,
-	"delete config":      0x00010004,
-	"resend commands":	  0x00010005,
+	"create config":      0x0001,
+	"set default config": 0x0002,
+	"read config":        0x0003,
+	"delete config":      0x0004,
+	"resend commands":    0x0005,
 }

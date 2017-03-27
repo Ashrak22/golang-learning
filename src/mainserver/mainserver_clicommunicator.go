@@ -9,8 +9,6 @@ import (
 	"strings"
 )
 
-var climap = map[string]bool{}
-
 func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 	var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
 	var name string
@@ -68,7 +66,7 @@ func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 }
 
 func resendCommands() error {
-	go sendCommands()
+	sendCommands()
 	return nil
 }
 
