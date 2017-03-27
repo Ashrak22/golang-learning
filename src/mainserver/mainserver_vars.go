@@ -33,3 +33,5 @@ var commands = map[string]int16{
 	"delete config":      0x0004,
 	"resend commands":    0x0005,
 }
+
+var apps = &installedCommands{installedApps: map[int16]app{}}

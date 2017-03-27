@@ -61,7 +61,9 @@ func getCommand() (*messages.Command, error) {
 	for key, value := range commands {
 		if strings.HasPrefix(trimmed, key) {
 			comm.Command = value
-			comm.Argstring = string(trimmed[len(key)+1:])
+			if len(trimmed) != len(key) {
+				comm.Argstring = string(trimmed[len(key)+1:])
+			}
 		}
 	}
 	if comm.Command == 0 {
