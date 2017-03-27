@@ -45,7 +45,7 @@ func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 			var err error
 			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", comm.Command, comm.Argstring)
 			switch comm.Command {
-			case 0x00010005:
+			case 0x0005:
 				err = resendCommands()
 			default:
 				err = nil
@@ -90,4 +90,8 @@ func sendCommands() {
 
 func removeConnection(conn string) {
 	delete(climap, conn)
+}
+
+func commandDispatch(code int32, vs ...string) error {
+	return nil
 }
