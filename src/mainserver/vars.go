@@ -18,6 +18,8 @@ var myErrors = map[uint16]string{
 	0x0012: "Error while marshalling data: ",
 	0x0013: "Can't connect to cli: %s because of: %s",
 	0x0014: "App %04X, %s already installed",
+	0x0015: "This app is not installed",
+	0x0016: "Not implemented",
 }
 
 var port uint16

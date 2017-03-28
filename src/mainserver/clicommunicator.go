@@ -93,5 +93,17 @@ func removeConnection(conn string) {
 }
 
 func commandDispatch(code int32, vs ...string) error {
+	appfacility := int16(code >> 16)
+	value, existed := apps.installedApps[appfacility]
+	if !existed {
+		return bettererror.NewBetterError(myFacility, 0x0015, myErrors[0x0015])
+	}
+	if value.name == "mainserver" {
+		return performCommand(int16(code & 0x0000FFFF))
+	}
+	return bettererror.NewBetterError(myFacility, 0x00016, myErrors[0x0016])
+}
+
+func performCommand(code int16) error {
 	return nil
 }

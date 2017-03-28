@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package main;
+
+
+message DateTime {
+    uint32 year = 1;
+    uint32 month = 2;
+    uint32 day = 3;
+    uint32 hour = 4;
+    uint32 minute = 5;
+    uint32 second = 6;
+    uint32 milliseconds = 7;
+}
+
+enum ConfigType {
+        InstalledApp = 0;
+        Autostart  = 1;
+    }
+
+message ConfigItem {
+    ConfigType type = 1;
+    string value = 2;
+}
+
+message Config {
+    int32 version = 1;
+    DateTime timestamp = 2;
+    repeated ConfigItem item = 3;
+}
