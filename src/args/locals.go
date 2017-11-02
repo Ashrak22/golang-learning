@@ -7,14 +7,6 @@ import (
 	"strings"
 )
 
-const myFacility uint16 = 0x0001
-
-type arg struct {
-	function   ArgFunc
-	paramCount int
-	separator  string
-}
-
 func init() {
 	bettererror.RegisterFacility(myFacility, "args")
 }
@@ -27,18 +19,17 @@ func (a *Argument) parseArg(arg string) (bool, string, error) {
 
 	value, existed := a.argsMap[trimmed]
 	if !existed {
-		return false, "", bettererror.NewBetterError(myFacility, 0x0004, "Found possible not registered argument")
+		return false, "", bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004])
 	}
 
 	var buff bytes.Buffer
-    buff.WriteString(value.separator)
-    buff.WriteString(trimmed)
+	buff.WriteString(value.separator)
+	buff.WriteString(trimmed)
 
 	if arg == buff.String() {
 		return true, trimmed, nil
-	} else {
-		return false, "", bettererror.NewBetterError(myFacility, 0x0005, "Wrong separator used")
 	}
+	return false, "", bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005])
 }
 
 func (a *Argument) splitArgs(args []string) (map[string][]string, error) {
