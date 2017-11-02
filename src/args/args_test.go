@@ -7,8 +7,9 @@ import (
 
 var errorCount int
 
-func help(vs ...string) {
+func help(vs ...string) error {
 	errorCount = errorCount + 1
+	return nil
 }
 
 func TestEvalArgsTooFewParams(t *testing.T) {
@@ -71,8 +72,9 @@ func TestEvalArgsCorrect(t *testing.T) {
 
 var abs int
 
-func prints(vs ...string) {
+func prints(vs ...string) error {
 	abs = len(vs)
+	return nil
 }
 
 func TestMoreParams(t *testing.T) {
