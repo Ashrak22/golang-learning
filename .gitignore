@@ -7,6 +7,9 @@
 _obj
 _test
 github.com
+golang.org
+bin
+sourcegraph.com
 
 # Architecture specific extensions/prefixes
 *.[568vq]
