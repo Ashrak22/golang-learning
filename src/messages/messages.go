@@ -109,3 +109,7 @@ func readMessageCompressed(conn *net.TCPConn, msg proto.Message) error {
 
 	return nil
 }
+
+func ReadMessageStream(unmarshaller MsgUnmarshaller, conn *net.TCPConn) error {
+
+}
