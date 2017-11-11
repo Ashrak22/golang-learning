@@ -1,6 +1,7 @@
 package main
 
 import "net"
+import "messages"
 
 const myFacility uint16 = 0x1003
 
@@ -16,7 +17,7 @@ var myErrors = map[uint16]string{
 	0x0009: "Marshalling error: ",
 	0x0010: "exit",
 	0x0011: "Unknown command: %s",
-	0x0012: "Cannot listen on specified port: %s",
+	0x0012: "Error while unmarshalling: %s",
 }
 
 var ipaddr []net.IP
@@ -24,3 +25,14 @@ var port uint16
 var compress = false
 
 var commands = map[string]int32{}
+var internalState state
+var msgType messages.MsgType_Types
+
+type state int
+
+const (
+	stateInit state = iota
+	stateIdle
+	stateWaitingForResponse
+	stateTypeReceived
+)

@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 func init() {
@@ -47,6 +48,12 @@ func main() {
 
 func getCommand() (*messages.Command, error) {
 	var b = make([]byte, 8*1024)
+	for {
+		time.Sleep(100 * time.Millisecond)
+		if internalState == stateIdle {
+			break
+		}
+	}
 	fmt.Print("> ")
 	functions.Memset(b, 0)
 	os.Stdin.Read(b)
@@ -85,19 +92,6 @@ func runLoop() error {
 		return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
 	}
 
-	var initResponse = new(messages.InitResponse)
-	err = messages.ReadMessage(conn, initResponse, compress)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else if !initResponse.Allowed {
-		return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
-	}
-
-	go receiveCommands()
-	if erro := recover(); err != nil {
-		return erro.(error)
-	}
-
 	for true {
 		command, err := getCommand()
 		if err != nil {
@@ -112,16 +106,7 @@ func runLoop() error {
 		if err != nil {
 			return err
 		}
-
-		var commandResponse = new(messages.CommandResult)
-		err = messages.ReadMessage(conn, commandResponse, compress)
-		if err != nil {
-			return err
-		}
-		if commandResponse.CommandResult != 0 {
-			fmt.Println(commandResponse.DisplayText)
-		}
-
+		internalState = stateWaitingForResponse
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func handleCli(conn *net.TCPConn, commPort int, compress bool) {
@@ -71,6 +72,7 @@ func resendCommands() error {
 }
 
 func sendCommands() {
+	time.Sleep(100 * time.Millisecond)
 	for key, value := range climap {
 		conn, err := net.Dial("tcp", key)
 		if err != nil {
