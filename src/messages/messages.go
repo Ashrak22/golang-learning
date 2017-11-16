@@ -24,13 +24,28 @@ func ReadMessage(conn *net.TCPConn, msg proto.Message, compress bool) error {
 	return readMessageUncompressed(conn, msg)
 }
 
+//NewClientStreamCommunicator is factory function for ClientStreamCommunicator
+func NewClientStreamCommunicator(port int, host []net.IP, errFunc MsgError, unmarshFunc MsgUnmarshaller, done chan bool) (*ClientStreamCommunicator, error) {
+	res := new(ClientStreamCommunicator)
+	conn, err := net.DialTCP("tcp", nil, &net.TCPAddr{IP: host[0], Port: port})
+	if err != nil {
+		return nil, bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004]+err.Error())
+	}
+	//defer conn.Close()
+	res.conn = conn
+	res.done = done
+	res.errFunc = errFunc
+	res.unmarFunc = unmarshFunc
+	return res, nil
+}
+
 //ReadMessageStream makes async message reading possible
-func ReadMessageStream(unmarshaller MsgUnmarshaller, errFunc MsgError, conn *net.TCPConn, done chan bool) {
+func (c *ClientStreamCommunicator) ReadMessageStream() {
 	var channel = make(chan readInfo, 20)
 	go func() {
 		for {
 			var info readInfo
-			info.data, info.err = dataReadStream(conn)
+			info.data, info.err = dataReadStream(c.conn)
 			if info.err.(*bettererror.BetterError).Code() == 0x00020007 {
 				fmt.Println("Client disconnected")
 				channel <- info
@@ -47,15 +62,15 @@ func ReadMessageStream(unmarshaller MsgUnmarshaller, errFunc MsgError, conn *net
 				break
 			}
 			if info.err != nil {
-				errFunc(info.err)
+				c.errFunc(info.err)
 				continue
 			}
-			err := unmarshaller(info.data)
+			err := c.unmarFunc(info.data)
 			if err != nil {
-				errFunc(err)
+				c.errFunc(err)
 			}
 
 		}
-		done <- true
+		c.done <- true
 	}()
 }
