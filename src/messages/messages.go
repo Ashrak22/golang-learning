@@ -2,12 +2,13 @@ package messages
 
 import (
 	"bettererror"
-	fmt "fmt"
+	"fmt"
 	"net"
 
 	"github.com/golang/protobuf/proto"
 )
 
+//WriteMessage write message to TCPConnection and if needed compresses it
 func WriteMessage(conn *net.TCPConn, msg proto.Message, compress bool) error {
 	if compress {
 		return writeMessageCompressed(conn, msg)
@@ -15,6 +16,7 @@ func WriteMessage(conn *net.TCPConn, msg proto.Message, compress bool) error {
 	return writeMessageUncompressed(conn, msg)
 }
 
+//ReadMessage reads message from TCPConnection and if needed uncompresses it
 func ReadMessage(conn *net.TCPConn, msg proto.Message, compress bool) error {
 	if compress {
 		return readMessageCompressed(conn, msg)
@@ -50,7 +52,7 @@ func ReadMessageStream(unmarshaller MsgUnmarshaller, errFunc MsgError, conn *net
 			}
 			err := unmarshaller(info.data)
 			if err != nil {
-				errFunc(info.err)
+				errFunc(err)
 			}
 
 		}
