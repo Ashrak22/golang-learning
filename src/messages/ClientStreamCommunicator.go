@@ -33,8 +33,8 @@ func NewClientStreamCommunicator(port int, host []net.IP, errFunc MsgError, unma
 }
 
 //StartRead starts async reading of messages, which are the passed to unmarshaller after reading
-func (c *ClientStreamCommunicator) StartRead() {
-	var channel = make(chan readInfo, 20)
+func (c *ClientStreamCommunicator) StartRead(bufferLength int) {
+	var channel = make(chan readInfo, bufferLength)
 	go func() {
 		for {
 			var info readInfo
@@ -69,5 +69,5 @@ func (c *ClientStreamCommunicator) StartRead() {
 }
 
 func (c *ClientStreamCommunicator) Write(msg proto.Message, compress bool) error {
-	return WriteMessage(c.conn, msg, compress)
+	return writeMessage(c.conn, msg, compress)
 }

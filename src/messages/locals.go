@@ -118,3 +118,19 @@ func dataReadStream(conn *net.TCPConn) ([]byte, error) {
 	length, err := dataRead(conn, &buffer)
 	return buffer[:length], err
 }
+
+//WriteMessage write message to TCPConnection and if needed compresses it
+func writeMessage(conn *net.TCPConn, msg proto.Message, compress bool) error {
+	if compress {
+		return writeMessageCompressed(conn, msg)
+	}
+	return writeMessageUncompressed(conn, msg)
+}
+
+//ReadMessage reads message from TCPConnection and if needed uncompresses it
+func readMessage(conn *net.TCPConn, msg proto.Message, compress bool) error {
+	if compress {
+		return readMessageCompressed(conn, msg)
+	}
+	return readMessageUncompressed(conn, msg)
+}
