@@ -2,16 +2,19 @@ package messages
 
 import "net"
 import "github.com/golang/protobuf/proto"
+import "sync"
 
 type ServerCommunicator struct {
 	conn     *net.TCPConn
 	compress bool
+	mutex    *sync.Mutex
 }
 
 func NewServerCommunicator(conn *net.TCPConn, compress bool) *ServerCommunicator {
 	res := new(ServerCommunicator)
 	res.conn = conn
 	res.compress = compress
+	res.mutex = &sync.Mutex{}
 	return res
 }
 
@@ -37,4 +40,12 @@ func (sc *ServerCommunicator) GetLocalPort() int {
 
 func (sc *ServerCommunicator) SetCompress(compress bool) {
 	sc.compress = compress
+}
+
+func (sc *ServerCommunicator) Lock() {
+	sc.mutex.Lock()
+}
+
+func (sc *ServerCommunicator) Unlock() {
+	sc.mutex.Unlock()
 }

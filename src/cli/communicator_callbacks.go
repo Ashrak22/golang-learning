@@ -18,7 +18,7 @@ func unmarshaller(buffer []byte) error {
 		} else if !initResponse.Allowed {
 			return bettererror.NewBetterError(myFacility, 0x0006, myErrors[0x0006])
 		}
-		internalState = stateWaitingForResponse
+		internalState = stateIdle
 	case stateIdle, stateWaitingForResponse:
 		var command = new(messages.MsgType)
 		err := proto.Unmarshal(buffer, command)

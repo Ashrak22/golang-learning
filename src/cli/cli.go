@@ -13,6 +13,7 @@ import (
 
 func init() {
 	bettererror.RegisterFacility(myFacility, "cliapp")
+	internalState = stateInit
 }
 
 func main() {
@@ -84,8 +85,8 @@ func runLoop() error {
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004]+err.Error())
 	}
-	defer comm.Close()
-
+	//defer comm.Close()
+	comm.StartRead(50)
 	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli", Compress: compress, Port: 40000}
 	err = comm.Write(initMessage, false)
 	if err != nil {
@@ -108,5 +109,8 @@ func runLoop() error {
 		}
 		internalState = stateWaitingForResponse
 	}
+	comm.Close()
+	<-done
+	close(done)
 	return nil
 }

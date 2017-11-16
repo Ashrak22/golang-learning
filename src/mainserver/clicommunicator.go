@@ -36,7 +36,14 @@ func handleCli(comm *messages.ServerCommunicator) {
 			fmt.Println(err.Error())
 			return
 		}
-
+		comm.Lock()
+		respType := &messages.MsgType{Magic: 0xABCD, Msgtype: messages.MsgType_CommandResult}
+		if err := comm.Write(respType); err != nil {
+			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
+			fmt.Println(err.Error())
+			comm.Unlock()
+			return
+		}
 		var resp *messages.CommandResult
 		if command.Magic != 0xABCD {
 			err := bettererror.NewBetterError(myFacility, 0x0009, fmt.Sprintf("%s: 0x%4X", myErrors[0x0009], command.Magic))
@@ -46,7 +53,8 @@ func handleCli(comm *messages.ServerCommunicator) {
 			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", command.Command, command.Argstring)
 			switch command.Command {
 			case 0x0005:
-				err = resendCommands(name)
+				go resendCommands(name)
+				err = nil
 			default:
 				err = nil
 			}
@@ -60,8 +68,10 @@ func handleCli(comm *messages.ServerCommunicator) {
 		if err := comm.Write(resp); err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
 			fmt.Println(err.Error())
+			comm.Unlock()
 			return
 		}
+		comm.Unlock()
 	}
 }
 
@@ -74,13 +84,20 @@ func sendCommands(conn string) {
 	time.Sleep(100 * time.Millisecond)
 	if conn == "All" {
 		for _, value := range climap {
+			value.Lock()
+			var msgType = &messages.MsgType{Magic: 0xABCD, Msgtype: messages.MsgType_CommandPush}
+			if err := value.Write(msgType); err != nil {
+				fmt.Println(err.Error())
+				value.Unlock()
+				continue
+			}
 			var msg = new(messages.CommandPush)
 			msg.Magic = 0xABCD
 			msg.Commands = apps.flattenCommands()
 			if err := value.Write(msg); err != nil {
 				fmt.Println(err.Error())
-				continue
 			}
+			value.Unlock()
 		}
 	} else {
 		var msg = new(messages.CommandPush)
@@ -94,7 +111,9 @@ func sendCommands(conn string) {
 }
 
 func removeConnection(conn string) {
+	climap[conn].Lock()
 	climap[conn].Close()
+	climap[conn].Unlock()
 	delete(climap, conn)
 }
 

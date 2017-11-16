@@ -2,7 +2,6 @@ package messages
 
 import (
 	"bettererror"
-	"fmt"
 	"net"
 
 	"github.com/golang/protobuf/proto"
@@ -38,9 +37,8 @@ func (c *ClientStreamCommunicator) StartRead(bufferLength int) {
 		for {
 			var info readInfo
 			info.data, info.err = dataReadStream(c.conn)
-			if info.err.(*bettererror.BetterError).Code() == 0x00020007 {
-				fmt.Println("Client disconnected")
-				channel <- info
+			if info.err != nil {
+				<-c.done
 				break
 			}
 			channel <- info
@@ -75,5 +73,5 @@ func (c *ClientStreamCommunicator) Write(msg proto.Message, compress bool) error
 func (c *ClientStreamCommunicator) Close() {
 	c.conn.Close()
 	c.done <- true
-	close(c.done)
+	//close(c.done)
 }
