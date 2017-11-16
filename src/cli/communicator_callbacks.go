@@ -48,6 +48,10 @@ func unmarshaller(buffer []byte) error {
 	return nil
 }
 
+func errFunc(err error) {
+	fmt.Println(err.Error())
+}
+
 func receiveCommands(buffer []byte) error {
 	var msg = new(messages.CommandPush)
 	err := proto.Unmarshal(buffer, msg)

@@ -12,7 +12,6 @@ import (
 type ClientStreamCommunicator struct {
 	conn      *net.TCPConn
 	done      chan bool
-	end       chan bool
 	unmarFunc MsgUnmarshaller
 	errFunc   MsgError
 }
@@ -70,4 +69,11 @@ func (c *ClientStreamCommunicator) StartRead(bufferLength int) {
 
 func (c *ClientStreamCommunicator) Write(msg proto.Message, compress bool) error {
 	return writeMessage(c.conn, msg, compress)
+}
+
+//Close closes connection
+func (c *ClientStreamCommunicator) Close() {
+	c.conn.Close()
+	c.done <- true
+	close(c.done)
 }

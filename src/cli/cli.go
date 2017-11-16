@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"functions"
 	"messages"
-	"net"
 	"os"
 	"strings"
 	"time"
@@ -80,14 +79,15 @@ func getCommand() (*messages.Command, error) {
 }
 
 func runLoop() error {
-	conn, err := net.DialTCP("tcp", nil, &net.TCPAddr{IP: ipaddr[0], Port: int(port)})
+	done := make(chan bool)
+	comm, err := messages.NewClientStreamCommunicator(int(port), ipaddr, errFunc, unmarshaller, done)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004]+err.Error())
 	}
-	defer conn.Close()
+	defer comm.Close()
 
 	var initMessage = &messages.Init{Version: 1, Magic: 0xABCD, App: "cli", Compress: compress, Port: 40000}
-	err = messages.WriteMessage(conn, initMessage, false)
+	err = comm.Write(initMessage, false)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0005, myErrors[0x0005]+err.Error())
 	}
@@ -102,7 +102,7 @@ func runLoop() error {
 			continue
 		}
 
-		err = messages.WriteMessage(conn, command, compress)
+		err = comm.Write(command, compress)
 		if err != nil {
 			return err
 		}

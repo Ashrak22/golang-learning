@@ -22,3 +22,7 @@ func (sc *ServerCommunicator) Read(pb proto.Message) error {
 func (sc *ServerCommunicator) Write(pb proto.Message) error {
 	return writeMessage(sc.conn, pb, sc.compress)
 }
+
+func (sc *ServerCommunicator) Close() {
+	sc.conn.Close()
+}
