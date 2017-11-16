@@ -4,32 +4,31 @@ import (
 	"bettererror"
 	"fmt"
 	"messages"
-	"net"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func handleCli(conn *net.TCPConn, commPort int, compress bool) {
+func handleCli(comm *messages.ServerCommunicator) {
 	var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
 	var name string
-	if strings.Contains(conn.RemoteAddr().(*net.TCPAddr).IP.String(), ":") {
-		name = "[" + conn.RemoteAddr().(*net.TCPAddr).IP.String() + "]:" + strconv.Itoa(commPort)
+	if strings.Contains(comm.GetRemoteAddress(), ":") {
+		name = "[" + comm.GetRemoteAddress() + "]:" + strconv.Itoa(comm.GetLocalPort())
 	} else {
-		name = conn.RemoteAddr().(*net.TCPAddr).IP.String() + ":" + strconv.Itoa(commPort)
+		name = comm.GetRemoteAddress() + ":" + strconv.Itoa(comm.GetLocalPort())
 	}
-	climap[name] = compress
+	climap[name] = comm
 	defer removeConnection(name)
-	go sendCommands()
-	if err := messages.WriteMessage(conn, initResponse, compress); err != nil {
+	go sendCommands("All")
+	if err := comm.Write(initResponse); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
 	for true {
-		var comm = new(messages.Command)
+		var command = new(messages.Command)
 
-		if err := messages.ReadMessage(conn, comm, compress); err != nil {
+		if err := comm.Read(command); err != nil {
 			if err.(*bettererror.BetterError).Code() == 0x00020007 {
 				fmt.Println("Client disconnected")
 				return
@@ -39,15 +38,15 @@ func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 		}
 
 		var resp *messages.CommandResult
-		if comm.Magic != 0xABCD {
-			err := bettererror.NewBetterError(myFacility, 0x0009, fmt.Sprintf("%s: 0x%4X", myErrors[0x0009], comm.Magic))
+		if command.Magic != 0xABCD {
+			err := bettererror.NewBetterError(myFacility, 0x0009, fmt.Sprintf("%s: 0x%4X", myErrors[0x0009], command.Magic))
 			resp = &messages.CommandResult{Magic: 0xABCD, CommandResult: int32(err.Code()), DisplayText: err.Error()}
 		} else {
 			var err error
-			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", comm.Command, comm.Argstring)
-			switch comm.Command {
+			fmt.Printf("Received command 0x%.8X with args '%s'\r\n", command.Command, command.Argstring)
+			switch command.Command {
 			case 0x0005:
-				err = resendCommands()
+				err = resendCommands(name)
 			default:
 				err = nil
 			}
@@ -58,7 +57,7 @@ func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 			}
 		}
 
-		if err := messages.WriteMessage(conn, resp, compress); err != nil {
+		if err := comm.Write(resp); err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
 			fmt.Println(err.Error())
 			return
@@ -66,31 +65,36 @@ func handleCli(conn *net.TCPConn, commPort int, compress bool) {
 	}
 }
 
-func resendCommands() error {
-	sendCommands()
+func resendCommands(conn string) error {
+	sendCommands(conn)
 	return nil
 }
 
-func sendCommands() {
+func sendCommands(conn string) {
 	time.Sleep(100 * time.Millisecond)
-	for key, value := range climap {
-		conn, err := net.Dial("tcp", key)
-		if err != nil {
-			fmt.Println(bettererror.NewBetterError(myFacility, 0x0013, fmt.Sprintf(myErrors[0x0013], key, err.Error())).Error())
-			continue
+	if conn == "All" {
+		for _, value := range climap {
+			var msg = new(messages.CommandPush)
+			msg.Magic = 0xABCD
+			msg.Commands = apps.flattenCommands()
+			if err := value.Write(msg); err != nil {
+				fmt.Println(err.Error())
+				continue
+			}
 		}
+	} else {
 		var msg = new(messages.CommandPush)
 		msg.Magic = 0xABCD
 		msg.Commands = apps.flattenCommands()
-		if err = messages.WriteMessage(conn.(*net.TCPConn), msg, value); err != nil {
+		if err := climap[conn].Write(msg); err != nil {
 			fmt.Println(err.Error())
-			continue
 		}
 	}
 
 }
 
 func removeConnection(conn string) {
+	climap[conn].Close()
 	delete(climap, conn)
 }
 

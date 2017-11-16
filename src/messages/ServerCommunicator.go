@@ -26,3 +26,15 @@ func (sc *ServerCommunicator) Write(pb proto.Message) error {
 func (sc *ServerCommunicator) Close() {
 	sc.conn.Close()
 }
+
+func (sc *ServerCommunicator) GetRemoteAddress() string {
+	return sc.conn.RemoteAddr().String()
+}
+
+func (sc *ServerCommunicator) GetLocalPort() int {
+	return sc.conn.LocalAddr().(*net.TCPAddr).Port
+}
+
+func (sc *ServerCommunicator) SetCompress(compress bool) {
+	sc.compress = compress
+}

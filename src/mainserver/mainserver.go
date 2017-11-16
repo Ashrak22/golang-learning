@@ -56,16 +56,16 @@ func runLoop() error {
 		if err != nil {
 			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
 		}
-		defer conn.Close()
-		go runConnection(conn)
+		comm := messages.NewServerCommunicator(conn, false)
+		go runConnection(comm)
 	}
 	return nil
 }
 
-func runConnection(conn *net.TCPConn) {
+func runConnection(comm *messages.ServerCommunicator) {
 	var initmsg = new(messages.Init)
 
-	if err := messages.ReadMessage(conn, initmsg, false); err != nil {
+	if err := comm.Read(initmsg); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
@@ -75,7 +75,8 @@ func runConnection(conn *net.TCPConn) {
 		return
 	}
 	if initmsg.App == "cli" {
-		fmt.Println("App cli has connected from ", conn.RemoteAddr().String())
-		handleCli(conn, int(initmsg.Port), initmsg.Compress)
+		fmt.Println("App cli has connected from ", comm.GetRemoteAddress())
+		comm.SetCompress(initmsg.Compress)
+		handleCli(comm)
 	}
 }
