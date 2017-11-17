@@ -3,6 +3,7 @@ package main
 import (
 	"args"
 	"bettererror"
+	"communicator"
 	"fmt"
 	"messages"
 	"net"
@@ -56,13 +57,13 @@ func runLoop() error {
 		if err != nil {
 			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
 		}
-		comm := messages.NewServerCommunicator(conn, false)
+		comm := communicator.NewServerCommunicator(conn, false)
 		go runConnection(comm)
 	}
 	return nil
 }
 
-func runConnection(comm *messages.ServerCommunicator) {
+func runConnection(comm *communicator.ServerCommunicator) {
 	var initmsg = new(messages.Init)
 
 	if err := comm.Read(initmsg); err != nil {

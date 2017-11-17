@@ -2,6 +2,7 @@ package main
 
 import (
 	"bettererror"
+	"communicator"
 	"fmt"
 	"messages"
 	"strconv"
@@ -9,7 +10,7 @@ import (
 	"time"
 )
 
-func handleCli(comm *messages.ServerCommunicator) {
+func handleCli(comm *communicator.ServerCommunicator) {
 	var initResponse = &messages.InitResponse{Magic: 0xABCD, Allowed: true}
 	var name string
 	if strings.Contains(comm.GetRemoteAddress(), ":") {

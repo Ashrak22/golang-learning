@@ -1,4 +1,4 @@
-package messages
+package communicator
 
 import (
 	"bettererror"

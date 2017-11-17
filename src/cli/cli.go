@@ -3,6 +3,7 @@ package main
 import (
 	"args"
 	"bettererror"
+	"communicator"
 	"fmt"
 	"functions"
 	"messages"
@@ -81,7 +82,7 @@ func getCommand() (*messages.Command, error) {
 
 func runLoop() error {
 	done := make(chan bool)
-	comm, err := messages.NewClientStreamCommunicator(int(port), ipaddr, errFunc, unmarshaller, done)
+	comm, err := communicator.NewClientStreamCommunicator(int(port), ipaddr, errFunc, unmarshaller, done)
 	if err != nil {
 		return bettererror.NewBetterError(myFacility, 0x0004, myErrors[0x0004]+err.Error())
 	}

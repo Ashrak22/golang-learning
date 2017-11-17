@@ -1,8 +1,11 @@
-package messages
+package communicator
 
-import "net"
-import "github.com/golang/protobuf/proto"
-import "sync"
+import (
+	"net"
+	"sync"
+	 
+	"github.com/golang/protobuf/proto"
+)
 
 type ServerCommunicator struct {
 	conn     *net.TCPConn

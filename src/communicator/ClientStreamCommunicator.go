@@ -1,4 +1,4 @@
-package messages
+package communicator
 
 import (
 	"bettererror"
@@ -72,6 +72,6 @@ func (c *ClientStreamCommunicator) Write(msg proto.Message, compress bool) error
 //Close closes connection
 func (c *ClientStreamCommunicator) Close() {
 	c.conn.Close()
-	c.done <- true
-	//close(c.done)
+	//c.done <- true
+	close(c.done)
 }

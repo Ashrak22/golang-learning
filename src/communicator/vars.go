@@ -1,4 +1,4 @@
-package messages
+package communicator
 
 var myFacility uint16 = 0x0002
 
