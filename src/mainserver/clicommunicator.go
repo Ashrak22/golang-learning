@@ -21,7 +21,8 @@ func handleCli(comm *communicator.ServerCommunicator) {
 	climap[name] = comm
 	defer removeConnection(name)
 	go sendCommands("All")
-	if err := comm.Write(initResponse); err != nil {
+	comm.Write(initResponse)
+	if err := <-comm.ErrChannel; err != nil {
 		fmt.Println(err.Error())
 		return
 	}
@@ -37,14 +38,7 @@ func handleCli(comm *communicator.ServerCommunicator) {
 			fmt.Println(err.Error())
 			return
 		}
-		comm.Lock()
-		respType := &messages.MsgType{Magic: 0xABCD, Msgtype: messages.MsgType_CommandResult}
-		if err := comm.Write(respType); err != nil {
-			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
-			fmt.Println(err.Error())
-			comm.Unlock()
-			return
-		}
+
 		var resp *messages.CommandResult
 		if command.Magic != 0xABCD {
 			err := bettererror.NewBetterError(myFacility, 0x0009, fmt.Sprintf("%s: 0x%4X", myErrors[0x0009], command.Magic))
@@ -66,13 +60,23 @@ func handleCli(comm *communicator.ServerCommunicator) {
 			}
 		}
 
-		if err := comm.Write(resp); err != nil {
+		comm.Lock()
+		respType := &messages.MsgType{Magic: 0xABCD, Msgtype: messages.MsgType_CommandResult}
+		comm.Write(respType)
+		comm.Write(resp)
+		comm.Unlock()
+
+		if err := <-comm.ErrChannel; err != nil {
 			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
 			fmt.Println(err.Error())
-			comm.Unlock()
 			return
 		}
-		comm.Unlock()
+
+		if err := <-comm.ErrChannel; err != nil {
+			err = bettererror.NewBetterError(myFacility, 0x0010, myErrors[0x0010]+err.Error())
+			fmt.Println(err.Error())
+			return
+		}
 	}
 }
 
@@ -85,26 +89,39 @@ func sendCommands(conn string) {
 	time.Sleep(100 * time.Millisecond)
 	if conn == "All" {
 		for _, value := range climap {
-			value.Lock()
 			var msgType = &messages.MsgType{Magic: 0xABCD, Msgtype: messages.MsgType_CommandPush}
-			if err := value.Write(msgType); err != nil {
-				fmt.Println(err.Error())
-				value.Unlock()
-				continue
-			}
 			var msg = new(messages.CommandPush)
 			msg.Magic = 0xABCD
 			msg.Commands = apps.flattenCommands()
-			if err := value.Write(msg); err != nil {
+
+			value.Lock()
+			value.Write(msgType)
+			value.Write(msg)
+			value.Unlock()
+
+			if err := <-value.ErrChannel; err != nil {
 				fmt.Println(err.Error())
 			}
-			value.Unlock()
+			if err := <-value.ErrChannel; err != nil {
+				fmt.Println(err.Error())
+			}
 		}
 	} else {
 		var msg = new(messages.CommandPush)
 		msg.Magic = 0xABCD
 		msg.Commands = apps.flattenCommands()
-		if err := climap[conn].Write(msg); err != nil {
+		var msgType = &messages.MsgType{Magic: 0xABCD, Msgtype: messages.MsgType_CommandPush}
+
+		climap[conn].Lock()
+		climap[conn].Write(msgType)
+		climap[conn].Write(msg)
+		climap[conn].Unlock()
+
+		if err := <-climap[conn].ErrChannel; err != nil {
+			fmt.Println(err.Error())
+		}
+
+		if err := <-climap[conn].ErrChannel; err != nil {
 			fmt.Println(err.Error())
 		}
 	}

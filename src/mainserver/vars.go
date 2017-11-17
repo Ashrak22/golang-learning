@@ -1,8 +1,6 @@
 package main
 
-import (
-	"messages"
-)
+import "communicator"
 
 /*Error handling variables and consts*/
 const myFacility uint16 = 0x1001
@@ -29,7 +27,7 @@ var myErrors = map[uint16]string{
 var port uint16
 var cli bool
 
-var climap = map[string]*messages.ServerCommunicator{}
+var climap = map[string]*communicator.ServerCommunicator{}
 
 var commands = map[string]int16{
 	//0x0001xxxx - mainserver Commands

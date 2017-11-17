@@ -57,7 +57,7 @@ func runLoop() error {
 		if err != nil {
 			return bettererror.NewBetterError(myFacility, 0x0007, myErrors[0x0007]+err.Error())
 		}
-		comm := communicator.NewServerCommunicator(conn, false)
+		comm := communicator.NewServerCommunicator(conn)
 		go runConnection(comm)
 	}
 	return nil
