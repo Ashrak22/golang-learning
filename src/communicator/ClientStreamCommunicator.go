@@ -1,5 +1,11 @@
 package communicator
 
+/*********************************************************************************
+*
+*	TODO: 1) Better error handling, right now some errors don't bubble up to main
+*
+*********************************************************************************/
+
 import (
 	"bettererror"
 	"net"

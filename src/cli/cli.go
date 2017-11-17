@@ -1,5 +1,12 @@
 package main
 
+/**************************************************************************
+*
+*	TODO: 	1) Better synchronize state change across threads
+*			2) Remove active waiting on state change
+*			3) Create state change signal
+*
+**************************************************************************/
 import (
 	"args"
 	"bettererror"

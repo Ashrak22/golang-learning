@@ -1,9 +1,17 @@
 package communicator
 
+/********************************************************************************
+*
+*	TODO:	1) Make writing async (channel many producers one consument)
+*				so that we don't have spend as much a time with a locked mutex
+*
+*
+*********************************************************************************/
+
 import (
 	"net"
 	"sync"
-	 
+
 	"github.com/golang/protobuf/proto"
 )
 
