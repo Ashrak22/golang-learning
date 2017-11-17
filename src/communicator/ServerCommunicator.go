@@ -15,12 +15,15 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+//ServerCommunicator wraps network functionality for Server side of the communication, reading, writing, buffered writing
 type ServerCommunicator struct {
 	conn     *net.TCPConn
 	compress bool
 	mutex    *sync.Mutex
 }
 
+//NewServerCommunicator is the factory function to create new Server Communicator, you have to supply TCP Connection conn
+//and bool that specifies whether connection
 func NewServerCommunicator(conn *net.TCPConn, compress bool) *ServerCommunicator {
 	res := new(ServerCommunicator)
 	res.conn = conn
